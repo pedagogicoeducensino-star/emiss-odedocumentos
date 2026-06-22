@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal de Emissão de Documentos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root { 
+      --primaria: #EA580C;       /* Laranja */
+      --primaria-hover: #C2410C; /* Laranja Escuro */
+      --secundaria: #F59E0B;     /* Amarelo Ouro */
+      --dourado: #D97706;        /* Dourado */
+      --cinza-fundo: #F1F5F9;    /* Cinza Claro */
+      --cinza-card: #FFFFFF;
+      --cinza-texto: #1E293B;
+      --cinza-borda: #CBD5E1;
+    }
+    body { background-color: var(--cinza-fundo); font-family: 'Segoe UI', system-ui, sans-serif; color: var(--cinza-texto); }
+    
+    .nav-tabs-custom { display: flex; border-bottom: 3px solid var(--cinza-borda); margin-bottom: 25px; background: white; padding: 10px 10px 0 10px; border-radius: 8px 8px 0 0; }
+    .tab-item { padding: 12px 24px; font-weight: 700; cursor: pointer; border-radius: 8px 8px 0 0; transition: all 0.2s; border: 1px solid transparent; color: #64748B; margin-right: 5px; }
+    .tab-item:hover { background-color: #FEF3C7; color: var(--dourado); }
+    .tab-item.active { background-color: var(--primaria); color: white; border: 1px solid var(--primaria); border-bottom-color: transparent; }
+    
+    h1.titulo-topo { font-size: 22px; font-weight: 800; color: #7C2D12; }
+    h5 { font-size: 16px; font-weight: 700; color: #475569; }
+    .card-3d { background: var(--cinza-card); border-radius: 16px; padding: 24px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04); border: 1px solid var(--cinza-borda); }
+    
+    .lista-documentos { border-radius: 12px; overflow: hidden; border: 1px solid var(--cinza-borda); background: white; }
+    .item-documento { padding: 12px 16px; font-size: 14.5px; font-weight: 600; color: var(--cinza-texto); border-bottom: 1px solid var(--cinza-borda); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px; }
+    .item-documento:last-child { border-bottom: none; }
+    .item-documento:hover { background-color: #FEF3C7; color: var(--dourado); padding-left: 22px; }
+    .item-documento.ativo { background-color: var(--secundaria); color: white; border-color: var(--secundaria); }
+    
+    .btn-primario { background-color: var(--primaria); color: white; border: none; font-weight: 600; padding: 12px 24px; border-radius: 8px; transition: all 0.2s; }
+    .btn-primario:hover { background-color: var(--primaria-hover); color: white; transform: translateY(-2px); }
+    
+    .form-control, .form-select { border-color: var(--cinza-borda); border-radius: 8px; padding: 10px 14px; font-size: 15px; }
+    .form-control:focus, .form-select:focus { border-color: var(--primaria); box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15); }
+    .escondido { display: none !important; }
+    .box-dinamica { background-color: #F8FAFC; border: 1px dashed var(--primaria); border-radius: 8px; padding: 16px; margin-top: 15px; }
+    
+    .input-validacao-container { max-width: 650px; margin: 40px auto; }
+    .input-validacao { font-size: 1.3rem; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; border: 3px solid var(--cinza-borda); border-radius: 12px 0 0 12px; }
+    .input-validacao:focus { border-color: var(--primaria); }
+    .btn-lupa { border-radius: 0 12px 12px 0; padding: 0 30px; font-size: 1.5rem; background-color: var(--dourado); color: white; border: none; }
+    .btn-lupa:hover { background-color: #B45309; }
+
+    .doc-container { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px; }
+    .doc-card { background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; width: 220px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; }
+    .doc-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+    .doc-icon { font-size: 40px; margin-bottom: 15px; }
+    .doc-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 15px; }
+    .btn-baixar { color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; text-decoration: none; display: inline-block; font-size: 14px; width: 100%; font-weight: bold;}
+    .btn-baixar:hover { opacity: 0.9; color: white; }
+
+    /* Estilos para a Tabela Menor (Tamanho 10) */
+    .tabela-bonita {
+      font-size: 10pt;
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    .tabela-bonita thead {
+      background-color: #f8f9fa;
+      color: #333;
+      text-align: left;
+    }
+    .tabela-bonita th, .tabela-bonita td {
+      padding: 6px 10px;
+      border: 1px solid #e2e8f0;
+      vertical-align: middle;
+    }
+    .tabela-bonita input, .tabela-bonita select {
+      font-size: 10pt;
+      padding: 4px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      width: 100%;
+    }
+    .tabela-bonita input.form-control-sm, .tabela-bonita select.form-select-sm {
+      padding: 4px 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <datalist id="lista-cursos">
+    <option value="Assistente Administrativo - AA"></option>
+    <option value="Assistente Administrativo Plus - AAP"></option>
+    <option value="Atendente de Farmácia - AF"></option>
+    <option value="Atendente de Farmácia Plus - AFP"></option>
+    <option value="Cuidador de Idosos - CI"></option>
+    <option value="Design de Games e Edições - DGE"></option>
+    <option value="Design Gráfico Plus - DGP"></option>
+    <option value="Informática Essencial Adulto - IEA"></option>
+    <option value="Informática Essencial Kids - IEK"></option>
+    <option value="Marketing Digital Criativo – MDC"></option>
+    <option value="Operador de Caixa - OC"></option>
+    <option value="Operador de Caixa Plus - OCP"></option>
+    <option value="Programador Web Profissional - PWP"></option>
+    <option value="Secretariado - S"></option>
+    <option value="Telemarketing - T"></option>
+    
+    <option value="CN - Assistente em Administração"></option>
+    <option value="CN - Assistente em Administração Plus"></option>
+    <option value="CN - Atendente de Farmácia"></option>
+    <option value="CN - Atendente de Farmácia Plus"></option>
+    <option value="CN - Cuidador de Idosos"></option>
+    <option value="CN - Design Desenvolvedor de Games"></option>
+    <option value="CN - Design Gráfico"></option>
+    <option value="CN - Design Gráfico Plus"></option>
+    <option value="CN - Informática Essencial - Adulto"></option>
+    <option value="CN - Informática Essencial - Kids"></option>
+    <option value="CN - Operador de Caixa"></option>
+    <option value="CN - Operador de Caixa Plus"></option>
+    <option value="CN - Secretariado"></option>
+    <option value="CN - Tabelas, Gráficos e Excel Completo - Adulto"></option>
+    <option value="CN - Telemarketing"></option>
+    <option value="CN - Informática Essencial - Terceira Idade"></option>
+  </datalist>
+
+  <datalist id="lista-disciplinas">
+    <option value="Access 2016"></option><option value="Access 2019"></option><option value="Administração V3"></option>
+    <option value="Administração V4"></option><option value="Administração V5"></option><option value="Administração V6"></option>
+    <option value="After Effects 2019"></option><option value="Animate CC"></option><option value="Atendimento ao Cliente V4"></option>
+    <option value="Atendimento ao Cliente V5"></option><option value="AutoCAD 2020 - 3D Civil"></option><option value="AutoCAD 2020 - Base"></option>
+    <option value="AutoCAD 2020 - Mecânica Base"></option><option value="AutoCAD 2020 - Projeto Civil"></option><option value="AutoCAD 2023 - 3D Civil"></option>
+    <option value="AutoCAD 2023 - Base"></option><option value="AutoCAD 2023 - Civil"></option><option value="AutoCAD 2023 - Mecânica Base"></option>
+    <option value="Auxiliar Jurídico V1"></option><option value="Balconista de Farmácia V3"></option><option value="Balconista de Farmácia V4"></option>
+    <option value="Balconista de Farmácia V5"></option><option value="Canva V1"></option><option value="Canva V2"></option>
+    <option value="CapCut V1"></option><option value="Como Montar seu Currículo"></option><option value="Contabilidade V3"></option>
+    <option value="Contabilidade V4"></option><option value="Contabilidade V5"></option><option value="CorelDRAW 2018"></option>
+    <option value="CorelDRAW 2021"></option><option value="CorelDRAW 2025"></option><option value="CorelDRAW X7"></option>
+    <option value="CSS"></option><option value="Cuidador de Idosos V1"></option><option value="Departamento Pessoal V3"></option>
+    <option value="Departamento Pessoal V4"></option><option value="Departamento Pessoal V5"></option><option value="Digitação"></option>
+    <option value="Dreamweaver CC"></option><option value="Edição para YouTube 2021"></option><option value="Educação Financeira para Jovens V1"></option>
+    <option value="Empreendedorismo V4"></option><option value="Empregabilidade V1"></option><option value="Emprego 2.0"></option>
+    <option value="Emprego 2.0 V2"></option><option value="Enriquecendo com Investimentos V1"></option><option value="Excel 2016"></option>
+    <option value="Excel 2016 - Avançado"></option><option value="Excel 2016 - Dashboard"></option><option value="Excel 2019"></option>
+    <option value="Excel 2019 - Avançado"></option><option value="Excel 2019 - Dashboard"></option><option value="Excel 2019 - Tabelas Dinâmicas"></option>
+    <option value="Excel 365 - Avançado V1"></option><option value="Excel 365 - Dashboards V1"></option><option value="Excel 365 - Tabelas Dinâmicas V1"></option>
+    <option value="Excel 365 - V1"></option><option value="Express 2016"></option><option value="Express 2019"></option>
+    <option value="Express 2023"></option><option value="Express V6"></option><option value="Games: Construct 2 - Básico"></option>
+    <option value="Games: Construct 2 - Intermediário"></option><option value="Games: Construct 3"></option><option value="Gemini Express V1"></option>
+    <option value="Gestão da Qualidade V4"></option><option value="Gestão da Qualidade V5"></option><option value="Gestão de Projetos V4"></option>
+    <option value="Gestão de Projetos V5"></option><option value="Gestão do Tempo V5"></option><option value="Google Workspace V1"></option>
+    <option value="HTML e CSS"></option><option value="HTML5"></option><option value="Illustrator 2022"></option>
+    <option value="Illustrator CC 2015"></option><option value="Illustrator CS6"></option><option value="InDesign 2023"></option>
+    <option value="InDesign CC 2015"></option><option value="InDesign CS6"></option><option value="Informática Kids V3 - Win 10"></option>
+    <option value="Informática Kids V4"></option><option value="Informática Kids V5 - W11"></option><option value="Informática Kids V6 - W11"></option>
+    <option value="Informática para Adultos V4"></option><option value="Informática Para Adultos V5 - W11"></option><option value="Informática Para Adultos V6 - W11"></option>
+    <option value="Inteligência Artificial com ChatGPT e Bard V1"></option><option value="Inteligência Emocional V4"></option><option value="Inteligência Emocional V5"></option>
+    <option value="Internet V5"></option><option value="Internet V6"></option><option value="Internet V7"></option>
+    <option value="Introdução à Informática V3"></option><option value="Introdução à Inteligência Artificial V4"></option><option value="Introdução à Inteligência Artificial V5"></option>
+    <option value="JavaScript - Básico V1"></option><option value="Liderança 4.0 V1"></option><option value="Liderança e Gestão de Pessoas na Prática V1"></option>
+    <option value="Liderança e Gestão de Pessoas na Prática V4"></option><option value="Liderança e Gestão de Pessoas na Prática V5"></option><option value="Lightroom Classic"></option>
+    <option value="Lógica de Programação"></option><option value="Lógica de Programação V2"></option><option value="Logística V4"></option>
+    <option value="Logística V5"></option><option value="Marketing Digital para Iniciantes V4"></option><option value="Marketing Digital para Iniciantes V5"></option>
+    <option value="Marketing Digital para Iniciantes V6"></option><option value="Marketing Pessoal V4"></option><option value="Marketing Pessoal V5"></option>
+    <option value="Matemática Financeira V1"></option><option value="Matemática Financeira V2"></option><option value="Operador de Caixa V3"></option>
+    <option value="Operador de Caixa V4"></option><option value="Oratória V4"></option><option value="Oratória V5"></option>
+    <option value="Outlook 365"></option><option value="Photoshop 2020"></option><option value="Photoshop 2022"></option>
+    <option value="Photoshop 2022 para Fotografia"></option><option value="Photoshop 2024"></option><option value="Photoshop CC 2018"></option>
+    <option value="Photoshop CC 2018 para Fotografia"></option><option value="Photoshop CS6"></option><option value="Photoshop CS6 - Projetos"></option>
+    <option value="PHP - Básico V2"></option><option value="PHP 5 - Básico"></option><option value="PHP e MySQL V1"></option>
+    <option value="Power BI V1"></option><option value="Power BI V2"></option><option value="PowerPoint 2016"></option>
+    <option value="PowerPoint 2019"></option><option value="PowerPoint 365 V1"></option><option value="PowerPoint 365 V2"></option>
+    <option value="PowerPoint Express V1"></option><option value="Premiere Pro 2019"></option><option value="Python para Iniciantes V1"></option>
+    <option value="Recursos Humanos V4"></option><option value="Recursos Humanos V5"></option><option value="Relações Humanas, Comunicação e Feedback V1"></option>
+    <option value="Secretariado V3"></option><option value="Secretariado V4"></option><option value="Secretariado V5"></option>
+    <option value="SketchUp 2015"></option><option value="SketchUp 2020 - Avançado"></option><option value="SketchUp 2020 - Free"></option>
+    <option value="SketchUp 2023"></option><option value="SketchUp 2025"></option><option value="Técnicas de Redação V3"></option>
+    <option value="Telemarketing V3"></option><option value="Telemarketing V4"></option><option value="Telemarketing V5"></option>
+    <option value="Terceira Idade - Win 10"></option><option value="Vendas V3"></option><option value="Vendas V4"></option>
+    <option value="Vendas V5"></option><option value="Vendas V6"></option><option value="Windows 10 - V1709"></option>
+    <option value="Windows 10 - V1809"></option><option value="Windows 11"></option><option value="Windows 11 2024"></option>
+    <option value="Windows 7"></option><option value="Windows 8.1"></option><option value="Word 2016"></option>
+    <option value="Word 2016 - Avançado - TCC"></option><option value="Word 2019"></option><option value="Word 365 V1"></option>
+    <option value="Youtuber"></option>
+  </datalist>
+
+  <div class="container py-3">
+    <div class="nav-tabs-custom shadow-sm">
+      <div id="tabPublica" class="tab-item active" onclick="alternarAbaPrincipal('publica')"><i class="fas fa-search"></i> Consulta de Autenticidade</div>
+      <div id="tabRestrita" class="tab-item" onclick="alternarAbaPrincipal('restrita')"><i class="fas fa-lock"></i> Portal de Emissão de Documentos</div>
+    </div>
+
+    <div id="secaoPublica" class="card-3d shadow-sm text-center mb-5" style="border-top: 5px solid var(--secundaria);">
+      <div class="my-3">
+        <i class="fas fa-search text-warning" style="font-size: 45px;"></i>
+        <h3 class="mt-2 fw-bold" style="color: #7C2D12;">Validação Pública de Documentos</h3>
+        <p class="text-muted">Insira a Chave de Validação para atestar a veracidade jurídica da declaração.</p>
+      </div>
+      <div class="input-group input-validacao-container shadow-sm">
+        <input type="text" id="inputChavePublica" class="form-control input-validacao" placeholder="Ex: ED-A1B2C3D4" maxlength="11" oninput="this.value = this.value.replace(/[^a-zA-Z0-9-]/g, '').toUpperCase();">
+        <button class="btn btn-lupa" id="btnConsultarPublico" onclick="realizarConsultaPublica()"><i class="fas fa-search"></i></button>
+      </div>
+      <div id="resultadoValidacaoPublica" class="mx-auto" style="max-width: 750px;"></div>
+    </div>
+
+    <div id="secaoRestrita" class="escondido">
+      
+      <div id="telaLogin" class="card-3d mx-auto shadow-sm" style="max-width: 400px; margin-top: 5vh; border-top: 5px solid var(--primaria);">
+        <div class="text-center mb-4">
+          <div class="mb-3"><i class="fas fa-id-badge" style="font-size: 50px; color: var(--primaria);"></i></div>
+          <h1 class="titulo-topo mb-1">Acesso Restrito</h1>
+          <p class="text-muted small">Insira sua senha funcional para acessar o portal</p>
+        </div>
+        <div class="mb-4">
+          <label class="form-label fw-bold text-secondary">Chave de Acesso:</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="fas fa-key text-muted"></i></span>
+            <input type="password" id="inputSenha" class="form-control border-start-0" placeholder="••••" style="letter-spacing: 3px;" onkeypress="if(event.key === 'Enter') fazerLogin()">
+          </div>
+        </div>
+        <button class="btn btn-primario w-100 py-2 fs-5" onclick="fazerLogin()">Acessar Painel <i class="fas fa-sign-in-alt ms-2"></i></button>
+      </div>
+
+      <div id="painelGeracao" class="escondido">
+        <div class="d-flex justify-content-between align-items-center card-3d py-3 mb-4" style="border-top: 5px solid var(--dourado);">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-light p-2 rounded-circle text-center" style="width: 45px; height: 45px;"><i class="fas fa-user-tie text-warning fs-4"></i></div>
+            <div>
+              <h1 class="titulo-topo mb-0" style="font-size: 20px;">Portal de Emissão de Documentos</h1>
+              <span class="text-muted small">Colaborador Conectado: <strong id="nomeColaboradorDisplay" style="color: var(--primaria);"></strong></span>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-outline-danger fw-bold shadow-sm" onclick="sair()"><i class="fas fa-sign-out-alt"></i> Sair</button>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-md-4 col-lg-3">
+            <h5 class="mb-3"><i class="fas fa-folder-open text-secondary"></i> Funções Operacionais</h5>
+            <div class="lista-documentos shadow-sm mb-4">
+              <div class="item-documento ativo" id="btn_doc_auditoria" onclick="abrirFormulario('auditoria')"><i class="fas fa-list-check text-success"></i> Verificação de Planilha</div>
+              <div class="item-documento" id="btn_doc_1" onclick="abrirFormulario(1)"><i class="fas fa-user-check text-primary"></i> Matrícula Ativa</div>
+              <div class="item-documento" id="btn_doc_2" onclick="abrirFormulario(2)"><i class="fas fa-exchange-alt text-info"></i> Troca de Curso</div>
+              <div class="item-documento" id="btn_doc_3" onclick="abrirFormulario(3)"><i class="fas fa-ban text-danger"></i> Desistência de Disciplinas</div>
+              <div class="item-documento" id="btn_doc_comp" onclick="abrirFormulario('comp')"><i class="fas fa-calendar-check text-success"></i> Declarações Comparecimento</div>
+              <div class="item-documento" id="btn_doc_10" onclick="abrirFormulario(10)"><i class="fas fa-comments text-warning"></i> Reunião Desempenho</div>
+              <div class="item-documento" id="btn_doc_11" onclick="abrirFormulario(11)"><i class="fas fa-hand-holding-usd text-success"></i> Estorno e Reembolso</div>
+              <div class="item-documento" id="btn_doc_13" onclick="abrirFormulario(13)"><i class="fas fa-calendar-plus text-primary"></i> Extensão de Curso</div>
+              <div class="item-documento" id="btn_doc_14" onclick="abrirFormulario(14)"><i class="fas fa-file-invoice-dollar text-danger"></i> Confissão de Dívida</div>
+              <div class="item-documento" id="btn_doc_15" onclick="abrirFormulario(15)"><i class="fas fa-user-edit text-info"></i> Alteração de Responsável</div>
+              <div class="item-documento" id="btn_doc_16" onclick="abrirFormulario(16)"><i class="fas fa-file-signature text-secondary"></i> Termo Aditivo Prazo/Valor</div>
+              <div class="item-documento" id="btn_doc_17" onclick="abrirFormulario(17)"><i class="fas fa-graduation-cap text-success"></i> Entrega de Certificado</div>
+              <div class="item-documento" id="btn_doc_18" onclick="abrirFormulario(18)"><i class="fas fa-exclamation-triangle text-danger"></i> Notificação de Débito</div>
+              <div class="item-documento" id="btn_doc_19" onclick="abrirFormulario(19)"><i class="fas fa-money-check-alt text-success"></i> Pagamentos de Serviços</div>
+            </div>
+          </div>
+
+          <div class="col-md-8 col-lg-9">
+            <div class="card-3d shadow-sm" style="border-top-color: var(--secundaria);">
+
+              <div id="form_doc_auditoria">
+                <h5 class="text-dark mb-3 border-bottom pb-2"><i class="fas fa-search-plus text-success"></i> Verificação de Registros na Planilha</h5>
+                <p class="text-muted small">Consulte todas as declarações emitidas registradas na aba "Registros de Emissão".</p>
+                <div class="input-group mb-3">
+                  <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                  <input type="text" id="inputFiltroInterno" class="form-control" placeholder="Filtrar por Chave, Colaborador, Tipo de Documento ou Aluno..." oninput="atualizarTabelaInterna()">
+                  <button class="btn btn-outline-secondary" onclick="atualizarTabelaInterna()"><i class="fas fa-sync"></i> Atualizar</button>
+                </div>
+                <div class="table-responsive border rounded bg-white" style="max-height: 480px; overflow-y: auto;">
+                  <table class="table table-striped table-hover align-middle mb-0 small">
+                    <thead class="table-dark sticky-top">
+                      <tr>
+                        <th>Chave Validação</th>
+                        <th>Colaborador</th>
+                        <th>Tipo Documento</th>
+                        <th>Aluno / Contratante</th>
+                        <th>Data</th>
+                        <th>Horário</th>
+                        <th>Emissor</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="corpoTabelaInterna">
+                      <tr>
+                        <td colspan="8" class="text-center py-3 text-muted">Digite um termo ou clique em atualizar...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div id="form_doc_1" class="escondido">
+                <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-edit text-primary"></i> Declaração de Matrícula Ativa <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Funcionário</span></h5>
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label fw-bold">Nome do Aluno(a):</label><input type="text" id="ma_nome" class="form-control" required></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">Matrícula:</label><input type="text" id="ma_matricula" class="form-control" required></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">CPF:</label><input type="text" id="ma_cpf" class="form-control" maxlength="14" oninput="mascaraCPF(this)" required></div>
+                  <div class="col-md-12"><label class="form-label fw-bold">Curso:</label><input list="lista-cursos" id="ma_curso" class="form-control" placeholder="Selecione..." required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Data Início:</label><input type="date" id="ma_data_inicio" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Data Fim:</label><input type="date" id="ma_data_fim" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Frequência Semanal:</label><input type="number" id="ma_frequencia" class="form-control" min="1" oninput="gerarCamposAgenda()" required></div>
+                  <div class="col-md-12 escondido" id="containerAgenda"><div class="box-dinamica" id="linhasDinâmicasAgenda"></div></div>
+                  <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura do Emissor:</label><select id="ma_assinatura" class="form-select select-assinatura" required></select></div>
+                </div>
+                <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(1, event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                <div id="areaResultado1"></div>
+              </div>
+
+              <div id="form_doc_2" class="escondido">
+                <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-exchange-alt text-primary"></i> Declaração de Troca de Curso <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Funcionário e Contratante</span></h5>
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label fw-bold">Resp. Legal / Contratante:</label><input type="text" id="tc_responsavel" class="form-control" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">CPF Resp.:</label><input type="text" id="tc_cpf_responsavel" class="form-control" maxlength="14" oninput="mascaraCPF(this)" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Nome Aluno:</label><input type="text" id="tc_nome_aluno" class="form-control" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Matrícula:</label><input type="text" id="tc_matricula" class="form-control" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Curso Anterior:</label><input list="lista-cursos" id="tc_curso_anterior" class="form-control" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Novo Curso:</label><input list="lista-cursos" id="tc_curso_novo" class="form-control" required></div>
+                  <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura da Escola:</label><select id="tc_assinatura" class="form-select select-assinatura" required></select></div>
+                </div>
+                <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(2, event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                <div id="areaResultado2"></div>
+              </div>
+
+              <div id="form_doc_3" class="escondido">
+                <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-ban text-danger"></i> Declaração de Desistência de Disciplinas <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Funcionário e Contratante</span></h5>
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label fw-bold">Resp. Legal / Contratante:</label><input type="text" id="ds_responsavel" class="form-control" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">CPF Resp.:</label><input type="text" id="ds_cpf_responsavel" class="form-control" maxlength="14" oninput="mascaraCPF(this)" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Nome Aluno:</label><input type="text" id="ds_nome_aluno" class="form-control" required></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">Matrícula:</label><input type="text" id="ds_matricula" class="form-control" required></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">Qtd Disciplinas:</label><input type="number" id="ds_qtd" class="form-control" min="1" max="15" oninput="gerarCamposDisciplinas()" required></div>
+                  <div class="col-md-12 escondido" id="containerDisciplinas"><div class="box-dinamica"><h6 class="text-primary fw-bold mb-3">Selecione as Disciplinas</h6><div id="linhasDisciplinas" class="row g-2"></div></div></div>
+                  <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura da Escola:</label><select id="ds_assinatura" class="form-select select-assinatura" required></select></div>
+                </div>
+                <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(3, event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                <div id="areaResultado3"></div>
+              </div>
+
+              <div id="form_doc_comp" class="escondido">
+                <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-users text-primary"></i> Declarações de Comparecimento <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Funcionário</span></h5>
+                <div class="mb-4 bg-light p-3 rounded border">
+                  <label class="form-label fw-bold text-primary">Selecione o Tipo de Destinatário:</label>
+                  <select id="tipo_comp_selector" class="form-select fw-bold" onchange="alternarTipoComp()">
+                    <option value="">Selecione...</option>
+                    <option value="4">Comparecimento - Alunos</option>
+                    <option value="5">Comparecimento - Gratuito</option>
+                    <option value="6">Comparecimento - Geral</option>
+                  </select>
+                </div>
+                
+                <div id="bloco_comp_4" class="escondido">
+                  <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label fw-bold">Nome Aluno:</label><input type="text" id="ca_nome" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label fw-bold">Matrícula:</label><input type="text" id="ca_matricula" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label fw-bold">CPF:</label><input type="text" id="ca_cpf" class="form-control" maxlength="14" oninput="mascaraCPF(this)"></div>
+                    <div class="col-md-12"><label class="form-label fw-bold">Curso:</label><input list="lista-cursos" id="ca_curso" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label fw-bold">Hora Entrada:</label><input type="time" id="ca_hora_inicio" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label fw-bold">Hora Saída:</label><input type="time" id="ca_hora_fim" class="form-control"></div>
+                    <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura:</label><select id="ca_assinatura" class="form-select select-assinatura"></select></div>
+                  </div>
+                  <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(4, event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                  <div id="areaResultado4"></div>
+                </div>
+
+                <div id="bloco_comp_5" class="escondido">
+                  <div class="row g-3">
+                    <div class="col-md-8"><label class="form-label fw-bold">Nome Completo:</label><input type="text" id="cg_nome" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label fw-bold">CPF:</label><input type="text" id="cg_cpf" class="form-control" maxlength="14" oninput="mascaraCPF(this)"></div>
+                    <div class="col-md-12"><label class="form-label fw-bold">Mini-Curso / Oficina:</label><input list="lista-disciplinas" id="cg_curso" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label fw-bold">Hora Entrada:</label><input type="time" id="cg_hora_inicio" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label fw-bold">Hora Saída:</label><input type="time" id="cg_hora_fim" class="form-control"></div>
+                    <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura:</label><select id="cg_assinatura" class="form-select select-assinatura"></select></div>
+                  </div>
+                  <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(5, event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                  <div id="areaResultado5"></div>
+                </div>
+
+                <div id="bloco_comp_6" class="escondido">
+                  <div class="row g-3">
+                    <div class="col-md-8"><label class="form-label fw-bold">Nome Completo:</label><input type="text" id="cge_nome" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label fw-bold">CPF:</label><input type="text" id="cge_cpf" class="form-control" maxlength="14" oninput="mascaraCPF(this)"></div>
+                    <div class="col-md-4"><label class="form-label fw-bold">Hora Entrada:</label><input type="time" id="cge_hora_inicio" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label fw-bold">Hora Saída:</label><input type="time" id="cge_hora_fim" class="form-control"></div>
+                    <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura:</label><select id="cge_assinatura" class="form-select select-assinatura"></select></div>
+                  </div>
+                  <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(6, event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                  <div id="areaResultado6"></div>
+                </div>
+              </div>
+
+              <div id="form_doc_10" class="escondido">
+                <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-comments text-primary"></i> Reunião de Desempenho Escolar <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Funcionário</span></h5>
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label fw-bold">Responsável Legal:</label><input type="text" id="re_responsavel" class="form-control" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">CPF Responsável:</label><input type="text" id="re_cpf_responsavel" class="form-control" maxlength="14" oninput="mascaraCPF(this)" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Nome do Aluno(a):</label><input type="text" id="re_nome_aluno" class="form-control" required></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">Data da Reunião:</label><input type="date" id="re_data" class="form-control" required></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">Horário:</label><input type="time" id="re_hora" class="form-control" required></div>
+                  <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura:</label><select id="re_assinatura" class="form-select select-assinatura" required></select></div>
+                </div>
+                <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(10, event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                <div id="areaResultado10"></div>
+              </div>
+
+              <div id="form_doc_11" class="escondido">
+                <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-money-bill-wave text-primary"></i> Painel de Estornos e Reembolsos <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Funcionário e Contratante</span></h5>
+                <div class="mb-4 bg-light p-3 rounded border">
+                  <select id="tipo_estorno_selector" class="form-select fw-bold" onchange="alternarTipoEstorno()">
+                    <option value="">Selecione a Modalidade...</option>
+                    <option value="11a">Estorno de Valores - Parcelado</option>
+                    <option value="11b">Estorno de Valores - Parcela Única</option>
+                    <option value="11c">Reembolso de Matrícula (CDC)</option>
+                  </select>
+                </div>
+
+                <div id="bloco_estorno_11a" class="escondido">
+                  <div class="row g-3">
+                    <div class="col-md-4"><label class="form-label fw-bold">Resp. Legal / Contratante:</label><input type="text" id="ep_responsavel" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label fw-bold">CPF Resp.:</label><input type="text" id="ep_cpf_responsavel" class="form-control" maxlength="14" oninput="mascaraCPF(this)"></div>
+                    <div class="col-md-4"><label class="form-label fw-bold">Data Contrato:</label><input type="date" id="ep_data_contrato" class="form-control"></div>
+                    <div class="col-md-8"><label class="form-label fw-bold">Nome Aluno:</label><input type="text" id="ep_nome_aluno" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label fw-bold">Matrícula:</label><input type="text" id="ep_matricula" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label fw-bold">Valor Original Pago (R$):</label><input type="number" step="0.01" id="ep_valor_pago" class="form-control" oninput="calcularEstorno11a()"></div>
+                    <div class="col-md-4"><label class="form-label fw-bold text-danger">Descontos/Multa Contratual (R$):</label><input type="number" step="0.01" id="ep_valor_multa" class="form-control" oninput="calcularEstorno11a()"></div>
+                    <div class="col-md-4"><label class="form-label fw-bold text-success">Líquido do Estorno (R$):</label><input type="text" id="ep_valor_estorno_calculado" class="form-control fw-bold bg-success text-white" readonly></div>
+                    
+                    <div class="col-md-3"><label class="form-label fw-bold">Tipo Chave:</label><select id="ep_chave_tipo" class="form-select" onchange="aplicarMascaraPix('ep')"><option value="CPF">CPF</option><option value="CNPJ">CNPJ</option><option value="Celular">Celular</option><option value="E-mail">E-mail</option><option value="Aleatória">Aleatória</option></select></div>
+                    <div class="col-md-9"><label class="form-label fw-bold">Chave PIX:</label><input type="text" id="ep_chave" class="form-control" placeholder="000.000.000-00"></div>
+                    
+                    <div class="col-md-12 bg-light p-2 rounded mb-2 border">
+                      <div class="form-check"><input class="form-check-input" type="checkbox" id="ep_check_mesmo_titular" onchange="vincularMesmoTitular('ep')"><label class="form-check-label fw-bold text-primary">Os dados do favorecido Pix pertencem ao próprio Titular do Contrato</label></div>
+                    </div>
+                    <div class="col-md-6"><label class="form-label fw-bold">Titular da Conta:</label><input type="text" id="ep_titular" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label fw-bold">CPF/CNPJ Titular:</label><input type="text" id="ep_cpf_titular" class="form-control" oninput="mascaraMutavel(this)"></div>
+                    <div class="col-md-6"><label class="form-label fw-bold">Data 1ª Parcela:</label><input type="date" id="ep_primeira_data" class="form-control" onchange="gerarCamposParcelas11a()"></div>
+                    
+                    <div class="col-md-6 d-flex align-items-end">
+                        <div class="w-100">
+                            <label class="form-label fw-bold">Qtd. Parcelas:</label>
+                            <input type="number" id="ep_qtd_parcelas" class="form-control" min="1" oninput="gerarCamposParcelas11a()">
+                        </div>
+                        <button type="button" class="btn btn-info text-white fw-bold ms-2 mb-1 text-nowrap" onclick="replicarDadosSequenciais('tbody_parcelas_11a')"><i class="fas fa-magic"></i> Auto-Preencher</button>
+                    </div>
+
+                    <div class="col-md-12 escondido" id="containerParcelas">
+                        <div class="box-dinamica pt-2" id="linhasParcelas"></div>
+                    </div>
+                    
+                    <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura da Escola:</label><select id="ep_assinatura" class="form-select select-assinatura"></select></div>
+                  </div>
+                  <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao('11a', event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                  <div id="areaResultado11a"></div>
+                </div>
+
+                <div id="bloco_estorno_11b" class="escondido">
+                  <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label fw-bold">Resp. Legal / Contratante:</label><input type="text" id="eu_responsavel" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label fw-bold">CPF Resp.:</label><input type="text" id="eu_cpf_responsavel" class="form-control" maxlength="14" oninput="mascaraCPF(this)"></div>
+                    <div class="col-md-8"><label class="form-label fw-bold">Nome Aluno:</label><input type="text" id="eu_nome_aluno" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label fw-bold">Matrícula:</label><input type="text" id="eu_matricula" class="form-control"></div>
+                    
+                    <div class="col-md-4"><label class="form-label fw-bold">Valor Total Pago (R$):</label><input type="number" step="0.01" id="eu_valor_total" class="form-control border-primary" oninput="calcularEstorno11b()"></div>
+                    <div class="col-md-4"><label class="form-label fw-bold">Taxa Adm. Cartão:</label>
+                      <select id="eu_taxa_cartao_sel" class="form-select border-primary" onchange="calcularEstorno11b()">
+                        <option value="0">Nenhuma Taxa (0%)</option>
+                        <option value="0.124">Maquininha Visa/Master (12,40%)</option>
+                        <option value="0.1341">Maquininha Elo (13,41%)</option>
+                        <option value="0.1666">Link de Pagamento (16,66%)</option>
+                      </select>
+                    </div>
+                    <div class="col-md-4"><label class="form-label fw-bold">Meses Cursados?</label>
+                      <select id="eu_meses_cursados_sel" class="form-select border-primary" onchange="alternarMesesCursados11b()">
+                        <option value="nao">Não</option>
+                        <option value="sim">Sim</option>
+                      </select>
+                    </div>
+                    <div class="col-md-4 escondido" id="box_eu_meses_uso"><label class="form-label fw-bold text-danger">Valor Consumido (R$):</label><input type="number" step="0.01" id="eu_meses_uso" class="form-control" oninput="calcularEstorno11b()"></div>
+                    
+                    <div class="col-md-4"><label class="form-label fw-bold text-danger">Multa (10%) (R$):</label><input type="text" id="eu_valor_multa" class="form-control bg-light" readonly></div>
+                    <div class="col-md-4"><label class="form-label fw-bold text-warning">Taxa Cobrada (R$):</label><input type="text" id="eu_valor_taxa" class="form-control bg-light" readonly></div>
+                    <div class="col-md-4"><label class="form-label fw-bold text-success">Líquido Reembolso (R$):</label><input type="text" id="eu_valor_estorno" class="form-control bg-success text-white fw-bold" readonly></div>
+                    
+                    <div class="col-md-12"><label class="form-label fw-bold">Data Limite (Automática 10 d.u.):</label><input type="text" id="eu_data_limite_display" class="form-control bg-light fw-bold" readonly><input type="hidden" id="eu_data_limite"></div>
+                    
+                    <div class="col-md-3"><label class="form-label fw-bold">Tipo Chave:</label><select id="eu_chave_tipo" class="form-select" onchange="aplicarMascaraPix('eu')"><option value="CPF">CPF</option><option value="CNPJ">CNPJ</option><option value="Celular">Celular</option><option value="E-mail">E-mail</option><option value="Aleatória">Aleatória</option></select></div>
+                    <div class="col-md-9"><label class="form-label fw-bold">Chave PIX:</label><input type="text" id="eu_chave" class="form-control" placeholder="000.000.000-00"></div>
+                    
+                    <div class="col-md-12 bg-light p-2 rounded mb-2 border">
+                      <div class="form-check"><input class="form-check-input" type="checkbox" id="eu_check_mesmo_titular" onchange="vincularMesmoTitular('eu')"><label class="form-check-label fw-bold text-primary">Os dados do favorecido Pix pertencem ao próprio Titular do Contrato</label></div>
+                    </div>
+                    <div class="col-md-6"><label class="form-label fw-bold">Titular da Conta:</label><input type="text" id="eu_titular" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label fw-bold">CPF/CNPJ Titular:</label><input type="text" id="eu_cpf_titular" class="form-control" oninput="mascaraMutavel(this)"></div>
+                    
+                    <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura da Escola:</label><select id="eu_assinatura" class="form-select select-assinatura"></select></div>
+                  </div>
+                  <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao('11b', event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                  <div id="areaResultado11b"></div>
+                </div>
+
+                <div id="bloco_estorno_11c" class="escondido">
+                  <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label fw-bold">Responsável Legal / Contratante:</label><input type="text" id="rm_responsavel" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label fw-bold">CPF Resp.:</label><input type="text" id="rm_cpf_responsavel" class="form-control" maxlength="14" oninput="mascaraCPF(this)"></div>
+                    <div class="col-md-8"><label class="form-label fw-bold">Nome Aluno:</label><input type="text" id="rm_nome_aluno" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label fw-bold">Matrícula:</label><input type="text" id="rm_matricula" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label fw-bold text-success">Valor Reembolso (R$):</label><input type="number" step="0.01" id="rm_valor" class="form-control" oninput="preencherExtenso()"></div>
+                    <div class="col-md-8"><label class="form-label fw-bold">Por Extenso Monetário (Gerado pelo Sistema):</label><input type="text" id="rm_valor_extenso" class="form-control bg-light" placeholder="Calculado automaticamente" readonly></div>
+                    <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura da Escola:</label><select id="rm_assinatura" class="form-select select-assinatura"></select></div>
+                  </div>
+                  <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao('11c', event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                  <div id="areaResultado11c"></div>
+                </div>
+              </div>
+
+              <div id="form_doc_13" class="escondido">
+                <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-calendar-plus text-primary"></i> Extensão de Curso <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Funcionário e Contratante</span></h5>
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label fw-bold">Resp. Legal / Contratante:</label><input type="text" id="ex_responsavel" class="form-control"></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">CPF Resp.:</label><input type="text" id="ex_cpf_responsavel" class="form-control" maxlength="14" oninput="mascaraCPF(this)"></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Nome Aluno:</label><input type="text" id="ex_nome_aluno" class="form-control"></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">Matrícula:</label><input type="text" id="ex_matricula" class="form-control"></div>
+                  <div class="col-md-3"><label class="form-label fw-bold text-danger">Meses Extensão:</label><input type="number" id="ex_meses" class="form-control"></div>
+                  <div class="col-md-12"><label class="form-label fw-bold">Curso:</label><input list="lista-cursos" id="ex_curso" class="form-control"></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Início Original:</label><input type="date" id="ex_data_inicio" class="form-control"></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Fim Original:</label><input type="date" id="ex_data_fim" class="form-control"></div>
+                  <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura da Escola:</label><select id="ex_assinatura" class="form-select select-assinatura"></select></div>
+                </div>
+                <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(13, event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                <div id="areaResultado13"></div>
+              </div>
+
+              <div id="form_doc_14" class="escondido">
+                <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-file-invoice-dollar text-danger"></i> Instrumento Particular de Confissão de Dívida <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Funcionário e Contratante</span></h5>
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label fw-bold">Contratante (Devedor):</label><input type="text" id="cd_responsavel" class="form-control" required></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">CPF Contratante:</label><input type="text" id="cd_cpf_responsavel" class="form-control" maxlength="14" oninput="mascaraCPF(this)" required></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">Contrato nº:</label><input type="text" id="cd_matricula" class="form-control" required></div>
+                  <div class="col-md-8"><label class="form-label fw-bold">Nome do Aluno(a):</label><input type="text" id="cd_nome_aluno" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Maioridade:</label><select id="cd_maioridade_tipo" class="form-select" onchange="ajustarCampoIdade()"><option value="maior de 18 anos">Maior de 18 anos</option><option value="menor">Menor de idade (Digitar)</option></select></div>
+                  <div class="col-md-8 escondido" id="containerIdadeManual"><label class="form-label fw-bold text-danger">Texto Menoridade:</label><input type="text" id="cd_idade_manual" class="form-control" placeholder="menor de 15 anos"></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Ano Letivo:</label><input type="text" id="cd_ano_letivo" class="form-control" required></div>
+                  <div class="col-md-5"><label class="form-label fw-bold">Rua/Av:</label><input type="text" id="cd_endereco" class="form-control" required></div>
+                  <div class="col-md-2"><label class="form-label fw-bold">Nº:</label><input type="text" id="cd_num_casa" class="form-control" required></div>
+                  <div class="col-md-5"><label class="form-label fw-bold">Bairro:</label><input type="text" id="cd_bairro" class="form-control" required></div>
+                  <div class="col-md-5"><label class="form-label fw-bold">Cidade:</label><input type="text" id="cd_cidade" class="form-control" required></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">Estado:</label><input type="text" id="cd_estado" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">CEP:</label><input type="text" id="cd_cep" class="form-control" maxlength="9" oninput="mascaraCEP(this)" required></div>
+                  
+                  <div class="col-md-6"><label class="form-label fw-bold text-dark fs-5">Valor Total da Dívida (R$):</label><input type="number" step="0.01" id="cd_valor_total" class="form-control border-dark fw-bold" oninput="calcularLogicaDívida()" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold text-muted">Restante Pós-Entrada (R$):</label><input type="text" id="cd_valor_restante_display" class="form-control bg-light fw-bold" readonly></div>
+                  
+                  <div class="col-md-12 bg-light p-3 rounded border border-warning">
+                    <label class="form-label fw-bold text-warning mb-2">Formas Ativas de Pagamento:</label>
+                    
+                    <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="cd_check_entrada" onchange="alternarCamposOpcao('entrada')"><label class="form-check-label fw-bold">Opção 1 - Entrada</label></div>
+                    <div class="row g-2 ms-3 mb-3 escondido" id="box_cd_entrada"><div class="col-md-6"><input type="number" step="0.01" id="cd_entrada_valor" class="form-control form-control-sm" placeholder="Valor R$" oninput="calcularLogicaDívida()"></div><div class="col-md-6"><input type="date" id="cd_entrada_data" class="form-control form-control-sm"></div></div>
+                    
+                    <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="cd_check_avista" onchange="alternarCamposOpcao('avista')"><label class="form-check-label fw-bold">Opção 2 - À Vista Total</label></div>
+                    <div class="row g-2 ms-3 mb-3 escondido" id="box_cd_avista"><div class="col-md-6"><input type="number" step="0.01" id="cd_avista_valor" class="form-control form-control-sm" readonly></div><div class="col-md-6"><input type="date" id="cd_avista_data" class="form-control form-control-sm"></div></div>
+                    
+                    <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="cd_check_boleto" onchange="alternarCamposOpcao('boleto')"><label class="form-check-label fw-bold">Opção 3 - Boletos Bancários</label></div>
+                    <div class="row g-2 ms-3 mb-3 escondido" id="box_cd_boleto"><div class="col-md-4"><input type="number" id="cd_boleto_qtd" class="form-control form-control-sm" placeholder="Qtd parcelas" oninput="calcularLogicaDívida()"></div><div class="col-md-4"><input type="text" id="cd_boleto_valor_parc" class="form-control form-control-sm" readonly></div><div class="col-md-4"><input type="date" id="cd_boleto_data_base" class="form-control form-control-sm" onchange="calcularLogicaDívida()"></div></div>
+                    
+                    <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="cd_check_cartao" onchange="alternarCamposOpcao('cartao')"><label class="form-check-label fw-bold">Opção 4 - Cartão de Débito ou Crédito</label></div>
+                    <div class="row g-2 ms-3 escondido" id="box_cd_cartao"><div class="col-md-4"><input type="number" id="cd_cartao_qtd" class="form-control form-control-sm" placeholder="Até X vezes" oninput="calcularLogicaDívida()"></div><div class="col-md-4"><input type="text" id="cd_cartao_valor_parc" class="form-control form-control-sm" readonly></div><div class="col-md-4"><input type="date" id="cd_cartao_data" class="form-control form-control-sm"></div></div>
+                  </div>
+                  <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura da Escola:</label><select id="cd_assinatura" class="form-select select-assinatura" required></select></div>
+                </div>
+                <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(14, event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                <div id="areaResultado14"></div>
+              </div>
+
+              <div id="form_doc_15" class="escondido">
+                <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-user-edit text-info"></i> Termo de Alteração de Responsabilidade <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Apenas Partes (Antigo e Novo)</span></h5>
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label fw-bold">Antigo Responsável:</label><input type="text" id="ar_antigo_nome" class="form-control"></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">Nacionalidade:</label>
+                    <select id="ar_antigo_nacionalidade" class="form-select">
+                      <option value="Brasileiro(a)">Brasileiro(a)</option>
+                      <option value="Estrangeiro(a)">Estrangeiro(a)</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3"><label class="form-label fw-bold">Estado Civil:</label>
+                    <select id="ar_antigo_estado_civil" class="form-select">
+                      <option value="Solteiro(a)">Solteiro(a)</option>
+                      <option value="Casado(a)">Casado(a)</option>
+                      <option value="Divorciado(a)">Divorciado(a)</option>
+                      <option value="Viúvo(a)">Viúvo(a)</option>
+                      <option value="União Estável">União Estável</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Profissão:</label><input type="text" id="ar_antigo_profissao" class="form-control"></div>
+                  <div class="col-md-8"><label class="form-label fw-bold">CPF Antigo:</label><input type="text" id="ar_antigo_cpf" class="form-control" maxlength="14" oninput="mascaraCPF(this)"></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Endereço:</label><input type="text" id="ar_antigo_endereco" class="form-control"></div>
+                  <div class="col-md-2"><label class="form-label fw-bold">Nº:</label><input type="text" id="ar_antigo_num" class="form-control"></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Bairro:</label><input type="text" id="ar_antigo_bairro" class="form-control"></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Cidade:</label><input type="text" id="ar_antigo_cidade" class="form-control"></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Estado:</label><input type="text" id="ar_antigo_estado" class="form-control"></div>
+                  
+                  <div class="col-md-6"><label class="form-label fw-bold text-primary">Novo Responsável:</label><input type="text" id="ar_novo_nome" class="form-control"></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">Nacionalidade:</label>
+                    <select id="ar_novo_nacionalidade" class="form-select">
+                      <option value="Brasileiro(a)">Brasileiro(a)</option>
+                      <option value="Estrangeiro(a)">Estrangeiro(a)</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3"><label class="form-label fw-bold">Estado Civil:</label>
+                    <select id="ar_novo_estado_civil" class="form-select">
+                      <option value="Solteiro(a)">Solteiro(a)</option>
+                      <option value="Casado(a)">Casado(a)</option>
+                      <option value="Divorciado(a)">Divorciado(a)</option>
+                      <option value="Viúvo(a)">Viúvo(a)</option>
+                      <option value="União Estável">União Estável</option>
+                    </select>
+                  </div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Profissão:</label><input type="text" id="ar_novo_profissao" class="form-control"></div>
+                  <div class="col-md-4"><label class="form-label fw-bold text-primary">CPF Novo:</label><input type="text" id="ar_novo_cpf" class="form-control" maxlength="14" oninput="mascaraCPF(this)"></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Telefone:</label><input type="text" id="ar_novo_telefone" class="form-control" maxlength="15" oninput="mascaraCelular(this)"></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Endereço Novo:</label><input type="text" id="ar_novo_endereco" class="form-control"></div>
+                  <div class="col-md-2"><label class="form-label fw-bold">Nº:</label><input type="text" id="ar_novo_num" class="form-control"></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Bairro:</label><input type="text" id="ar_novo_bairro" class="form-control"></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Cidade:</label><input type="text" id="ar_novo_cidade" class="form-control"></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Estado:</label><input type="text" id="ar_novo_estado" class="form-control"></div>
+                  
+                  <div class="col-md-4"><label class="form-label fw-bold">Contrato original nº:</label><input type="text" id="ar_matricula" class="form-control"></div>
+                  <div class="col-md-8"><label class="form-label fw-bold">Nome do Aluno(a):</label><input type="text" id="ar_aluno" class="form-control"></div>
+                  <div class="col-md-12"><label class="form-label fw-bold">Curso:</label><input list="lista-cursos" id="ar_curso" class="form-control"></div>
+                </div>
+                <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(15, event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                <div id="areaResultado15"></div>
+              </div>
+
+              <div id="form_doc_16" class="escondido">
+                <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-file-signature text-secondary"></i> Termo Aditivo de Prazo e Mensalidades <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Funcionário e Contratante</span></h5>
+                <div class="row g-3">
+                  <div class="col-md-4"><label class="form-label fw-bold">Contrato Original Nº:</label><input type="text" id="tad_original" class="form-control" required></div>
+                  <div class="col-md-8"><label class="form-label fw-bold">Contratante:</label><input type="text" id="tad_contratante" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">CPF Contratante:</label><input type="text" id="tad_cpf" class="form-control" maxlength="14" oninput="mascaraCPF(this)" required></div>
+                  <div class="col-md-5"><label class="form-label fw-bold">Rua / Av:</label><input type="text" id="tad_rua" class="form-control" required></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">Nº:</label><input type="text" id="tad_num" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Cidade:</label><input type="text" id="tad_cidade" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Estado:</label><input type="text" id="tad_estado" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">CEP:</label><input type="text" id="tad_cep" class="form-control" maxlength="9" oninput="mascaraCEP(this)" required></div>
+                  <div class="col-md-12"><label class="form-label fw-bold">Curso:</label><input list="lista-cursos" id="tad_curso" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold text-danger">Meses Extensão:</label><input type="number" id="tad_meses" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold text-warning">Qtd Novas Mensalidades:</label><input type="number" id="tad_qtd_mensalidades" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Valor Mensal (R$):</label><input type="number" step="0.01" id="tad_valor" class="form-control" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Data 1ª Mensalidade:</label><input type="date" id="tad_data_primeira" class="form-control" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Assinatura da Escola:</label><select id="tad_signature" class="form-select select-assinatura" required></select></div>
+                </div>
+                <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(16, event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                <div id="areaResultado16"></div>
+              </div>
+
+              <div id="form_doc_17" class="escondido">
+                <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-graduation-cap text-success"></i> Recibo de Entrega de Certificado <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Aluno, Responsável e Escola</span></h5>
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label fw-bold">Nome do Aluno(a):</label><input type="text" id="cer_aluno" class="form-control" required></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">CPF Aluno:</label><input type="text" id="cer_cpf" class="form-control" maxlength="14" oninput="mascaraCPF(this)" required></div>
+                  <div class="col-md-3"><label class="form-label fw-bold">Matrícula nº:</label><input type="text" id="cer_matricula" class="form-control" required></div>
+                  <div class="col-md-12"><label class="form-label fw-bold">Curso:</label><input list="lista-cursos" id="cer_curso" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Início Curso:</label><input type="date" id="cer_inicio" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Fim Curso:</label><input type="date" id="cer_fim" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Média Geral (0 a 10):</label><input type="text" id="cer_media" class="form-control" placeholder="Ex: 9,5" oninput="validarNotaMédia(this)" required></div>
+                  <div class="col-md-12"><label class="form-label fw-bold text-primary">Data Real da Entrega:</label><input type="date" id="cer_data_entrega" class="form-control border-primary" required></div>
+                  <div class="col-md-12 bg-light p-3 rounded border">
+                    <label class="form-label fw-bold text-danger">Aluno Menor de Idade?</label>
+                    <select id="cer_menor" class="form-select fw-bold" onchange="alternarResponsavelCertificado()"><option value="nao">Não (Assina Escola e Aluno)</option><option value="sim">Sim (Assina Escola, Aluno e Responsável)</option></select>
+                    <div class="row g-2 mt-2 escondido" id="box_responsavel_certificado"><div class="col-md-6"><input type="text" id="cer_responsavel" class="form-control form-control-sm" placeholder="Nome Responsável"></div><div class="col-md-6"><input type="text" id="cer_cpf_responsavel" class="form-control form-control-sm" maxlength="14" oninput="mascaraCPF(this)" placeholder="CPF Responsável"></div></div>
+                  </div>
+                  <div class="col-md-12 mt-2"><label class="form-label fw-bold">Assinatura da Escola:</label><select id="cer_assinatura" class="form-select select-assinatura" required></select></div>
+                </div>
+                <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(17, event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                <div id="areaResultado17"></div>
+              </div>
+              
+              <div id="form_doc_18" class="escondido">
+                <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-exclamation-triangle text-danger"></i> NOTIFICAÇÃO DE DÉBITO <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Funcionário</span></h5>
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label fw-bold">Sr(a). Responsável Financeiro:</label><input type="text" id="nd_responsavel" class="form-control" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold text-danger">CPF do Responsável (Obrigatório p/ Banco de Dados):</label><input type="text" id="nd_cpf" class="form-control border-danger" maxlength="14" oninput="mascaraCPF(this)" required></div>
+                  <div class="col-md-8"><label class="form-label fw-bold">Nome do Aluno(a):</label><input type="text" id="nd_aluno" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Matrícula Nº:</label><input type="text" id="nd_matricula" class="form-control" required></div>
+                  <div class="col-md-12 mt-3"><h6 class="fw-bold text-danger border-bottom pb-1"><i class="fas fa-search-dollar"></i> Parâmetros Dinâmicos de Débitos</h6></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Quant. de Meses em Atraso:</label><input type="number" id="nd_qtd_meses" class="form-control border-primary" min="1" max="12" oninput="gerarCamposMesesAtraso()" required></div>
+                  <div class="col-md-12 escondido" id="containerMesesAtraso"><div class="box-dinamica" id="linhasMesesAtraso"></div></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Valor Original Total (R$):</label><input type="number" step="0.01" id="nd_valor_original" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold text-danger">Valor Atualizado C/ Juros (R$):</label><input type="number" step="0.01" id="nd_valor_atual" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold text-primary">Data Limite p/ Pagamento:</label><input type="date" id="nd_data_limite" class="form-control" required></div>
+                  <div class="col-md-12 bg-light p-3 rounded border border-warning mt-3">
+                    <label class="form-label fw-bold text-warning mb-2"><i class="fas fa-tasks"></i> Condições de Parcelamento e Cobrança:</label>
+                    <div class="row g-2">
+                      <div class="col-md-12 form-check ms-2 d-flex align-items-center">
+                        <input class="form-check-input mt-0 me-2" type="checkbox" id="nd_ck_boleto" checked>
+                        <label class="form-check-label fw-bold me-2">Oferecer Boleto Bancário em até</label>
+                        <select id="nd_sel_boleto" class="form-select form-select-sm d-inline-block" style="width: 85px;">
+                          <option value="1">1x</option><option value="2">2x</option><option value="3" selected>3x</option><option value="4">4x</option><option value="5">5x</option><option value="6">6x</option><option value="7">7x</option><option value="8">8x</option><option value="9">9x</option><option value="10">10x</option>
+                        </select>
+                        <span class="ms-2 fw-semibold text-muted">parcelas fixas</span>
+                      </div>
+                      <div class="col-md-12 form-check ms-2 mt-2">
+                        <input class="form-check-input mt-0" type="checkbox" id="nd_ck_pix" checked>
+                        <label class="form-check-label fw-bold ms-2">Oferecer PIX: solicitar o link de pagamento neste número (79) 9 8845-4945.</label>
+                      </div>
+                      <div class="col-md-12 form-check ms-2 d-flex align-items-center mt-2">
+                        <input class="form-check-input mt-0 me-2" type="checkbox" id="nd_ck_cartao" checked>
+                        <label class="form-check-label fw-bold me-2">Oferecer Cartão de Crédito em até</label>
+                        <select id="nd_sel_cartao" class="form-select form-select-sm d-inline-block" style="width: 85px;">
+                          <option value="1">1x</option><option value="2">2x</option><option value="3">3x</option><option value="4">4x</option><option value="5" selected>5x</option><option value="6">6x</option><option value="7">7x</option><option value="8">8x</option><option value="9">9x</option><option value="10">10x</option>
+                        </select>
+                        <span class="ms-2 fw-semibold text-muted">vezes sem juros</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura do Funcionário Emissor:</label><select id="nd_assinatura" class="form-select select-assinatura" required></select></div>
+                </div>
+                <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(18, event)"><i class="fas fa-database"></i> Emitir Notificação de Débito</button></div>
+                <div id="areaResultado18"></div>
+              </div>
+
+              <div id="form_doc_19" class="escondido">
+                <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-money-check-alt text-success"></i> Declaração de Pagamentos de Serviços Educacionais <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Funcionário</span></h5>
+                <div class="row g-3">
+                  <div class="col-md-6"><label class="form-label fw-bold">Responsável Financeiro:</label><input type="text" id="pg_responsavel" class="form-control" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">CPF do Responsável:</label><input type="text" id="pg_cpf_responsavel" class="form-control" maxlength="14" oninput="mascaraCPF(this)" required></div>
+                  <div class="col-md-8"><label class="form-label fw-bold">Nome do Aluno(a):</label><input type="text" id="pg_nome_aluno" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Matrícula:</label><input type="text" id="pg_matricula" class="form-control" required></div>
+                  <div class="col-md-6"><label class="form-label fw-bold">Ano Calendário:</label><input type="number" id="pg_ano" class="form-control" placeholder="Ex: 2024" required></div>
+                  
+                  <div class="col-md-12 mt-3"><h6 class="fw-bold text-success border-bottom pb-1"><i class="fas fa-list-ol"></i> Demonstrativo de Pagamentos</h6></div>
+                  
+                  <div class="col-md-6 d-flex align-items-end">
+                    <div class="w-100">
+                        <label class="form-label fw-bold">Quantas mensalidades foram pagas?</label>
+                        <input type="number" id="pg_qtd" class="form-control border-success" min="1" max="24" oninput="gerarCamposPagamentos()" required>
+                    </div>
+                    <button type="button" class="btn btn-info text-white fw-bold ms-2 mb-1 text-nowrap" onclick="replicarDadosSequenciais('tbody_pagamentos')"><i class="fas fa-magic"></i> Auto-Preencher</button>
+                  </div>
+                  
+                  <div class="col-md-12 escondido" id="containerPagamentos">
+                    <div class="box-dinamica bg-light pt-2" id="linhasPagamentos"></div>
+                  </div>
+                  
+                  <div class="col-md-6 mt-3"><label class="form-label fw-bold text-danger">Total Contratado (Automático):</label><input type="text" id="pg_total_contratado" class="form-control bg-light fw-bold" readonly></div>
+                  <div class="col-md-6 mt-3"><label class="form-label fw-bold text-success">Total Efetivamente Pago (Automático):</label><input type="text" id="pg_total_pago" class="form-control bg-light fw-bold" readonly></div>
+
+                  <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura da Instituição:</label><select id="pg_assinatura" class="form-select select-assinatura" required></select></div>
+                </div>
+                <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(19, event)"><i class="fas fa-database"></i> Emitir Declaração de Pagamentos</button></div>
+                <div id="areaResultado19"></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  const senhasColaboradores = { "2490": "Davi Felício", "2899": "Theo Araujo", "2380": "Isabele Ferreira", "1234": "Eksele Matos" };
+  let usuarioAtivo = ""; 
+  let formularioAtual = 'auditoria'; 
+  let valorEstornoFinal = 0;
+
+  // --- NOVO MOTOR DE API PARA O GITHUB ---
+  const API_URL = "COLE_AQUI_O_LINK_DO_SEU_WEB_APP_DO_PASSO_2";
+
+  function chamarBackend(funcao, parametros, onSuccess, onFailure) {
+    fetch(API_URL, {
+      method: 'POST',
+      // text/plain é o truque para evitar que o navegador bloqueie a requisição (CORS)
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ funcao: funcao, parametros: parametros })
+    })
+    .then(res => res.json())
+    .then(data => { if (onSuccess) onSuccess(data); })
+    .catch(err => { if (onFailure) onFailure(err); });
+  }
+  // ---------------------------------------
+
+    function abrirFormulario(id) {
+      if (id === formularioAtual) return;
+      
+      let temDados = false;
+      const inputsAtuais = document.getElementById('form_doc_' + formularioAtual).querySelectorAll('input, select');
+      for(let inp of inputsAtuais) {
+        if(inp.id !== 'inputFiltroInterno' && inp.value !== "" && inp.type !== "checkbox" && inp.type !== "hidden" && inp.value !== "nao" && inp.value !== "Brasileiro(a)" && inp.value !== "Solteiro(a)") {
+          temDados = true; break;
+        }
+      }
+
+      if(temDados) {
+        let confirmar = confirm("⚠️ Atenção: Se você sair desta aba, todos os dados preenchidos no formulário atual serão descartados permanentemente. Deseja continuar?");
+        if(!confirmar) return;
+      }
+
+      inputsAtuais.forEach(inp => {
+        if(inp.type === "checkbox") inp.checked = false;
+        else if(inp.classList.contains('nd_mes_ref_dinamico') || inp.classList.contains('nd_data_venc_dinamico') || inp.classList.contains('ds_disciplina_item') || inp.classList.contains('seletor-dia-dinamico') || inp.classList.contains('seletor-hora-dinamico') || inp.classList.contains('pg_val_contratado')) {
+          // Itens dinâmicos serão varridos
+        } else {
+          if(inp.id.includes('nacionalidade')) inp.value = "Brasileiro(a)";
+          else if(inp.id.includes('estado_civil')) inp.value = "Solteiro(a)";
+          else if(inp.tagName === "SELECT") inp.selectedIndex = 0;
+          else inp.value = "";
+        }
+      });
+
+      ['containerAgenda','containerDisciplinas','containerParcelas','containerMesesAtraso','box_cd_entrada','box_cd_avista','box_cd_boleto','box_cd_cartao','box_responsavel_certificado','box_eu_meses_uso','containerPagamentos'].forEach(cid => {
+        let el = document.getElementById(cid); if(el) el.classList.add('escondido');
+      });
+
+      document.querySelectorAll('[id^=areaResultado]').forEach(el => el.innerHTML = "");
+      formularioAtual = id;
+      document.querySelectorAll('.item-documento').forEach(el => el.classList.remove('ativo'));
+      let btn = document.getElementById('btn_doc_' + id); if(btn) btn.classList.add('ativo');
+      document.querySelectorAll('[id^=form_doc_]').forEach(el => el.classList.add('escondido'));
+      document.getElementById('form_doc_' + id).classList.remove('escondido');
+      if(id === 'auditoria') { atualizarTabelaInterna(); }
+    }
+
+    function limparFormularioTrabalhado(idForm) {
+      const container = document.getElementById('form_doc_' + idForm);
+      if(!container) return;
+      container.querySelectorAll('input, select').forEach(inp => {
+        if(inp.type === "checkbox") inp.checked = false;
+        else if(inp.id.includes('nacionalidade')) inp.value = "Brasileiro(a)";
+        else if(inp.id.includes('estado_civil')) inp.value = "Solteiro(a)";
+        else if(inp.tagName === "SELECT") inp.selectedIndex = 0;
+        else inp.value = "";
+      });
+      ['containerAgenda','containerDisciplinas','containerParcelas','containerMesesAtraso','box_cd_entrada','box_cd_avista','box_cd_boleto','box_cd_cartao','box_responsavel_certificado','box_eu_meses_uso','containerPagamentos'].forEach(cid => {
+        let el = document.getElementById(cid); if(el) el.classList.add('escondido');
+      });
+    }
+
+    function alternarAbaPrincipal(tipo) {
+      if (tipo === 'publica') {
+        document.getElementById('tabPublica').classList.add('active');
+        document.getElementById('tabRestrita').classList.remove('active');
+        document.getElementById('secaoPublica').classList.remove('escondido');
+        document.getElementById('secaoRestrita').classList.add('escondido');
+      } else {
+        document.getElementById('tabPublica').classList.remove('active');
+        document.getElementById('tabRestrita').classList.add('active');
+        document.getElementById('secaoPublica').classList.add('escondido');
+        document.getElementById('secaoRestrita').classList.remove('escondido');
+      }
+    }
+
+    function realizarConsultaPublica() {
+      const chave = document.getElementById('inputChavePublica').value;
+      const container = document.getElementById('resultadoValidacaoPublica');
+      const btn = document.getElementById('btnConsultarPublico');
+      if (!chave.trim()) { alert("Por favor, informe a chave antes de pesquisar."); return; }
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; btn.disabled = true; container.innerHTML = "";
+      chamarBackend("validarChavePublica", chave, function(res) {
+        btn.innerHTML = '<i class="fas fa-search"></i>'; btn.disabled = false;
+        if (res.sucesso) {
+          container.innerHTML = `<div class="alert alert-success shadow border-0 text-start mt-4" style="background-color: #F0FDF4; border-left: 6px solid #16A34A !important;"><h5 class="fw-bold text-success"><i class="fas fa-check-circle"></i> Documento Autêntico</h5><p class="mb-0 fw-semibold text-dark fs-6">${res.msg}</p></div>`;
+        } else {
+          container.innerHTML = `<div class="alert alert-danger shadow border-0 text-start mt-4" style="background-color: #FEF2F2; border-left: 6px solid #DC2626 !important;"><h5 class="fw-bold text-danger"><i class="fas fa-times-circle"></i> Falha de Autenticação</h5><p class="mb-0 text-secondary">${res.msg}</p></div>`;
+        }
+      });
+    }
+
+    function atualizarTabelaInterna() {
+      const filtro = document.getElementById('inputFiltroInterno').value;
+      const corpo = document.getElementById('corpoTabelaInterna');
+      corpo.innerHTML = `<tr><td colspan="8" class="text-center py-3"><i class="fas fa-spinner fa-spin text-primary"></i> Sincronizando com o Google Sheets...</td></tr>`;
+      chamarBackend("consultarRegistrosInternos", filtro, function(linhas) {
+        corpo.innerHTML = "";
+        if (linhas.length === 0) { corpo.innerHTML = `<tr><td colspan="8" class="text-center py-3 text-muted">Nenhum registro correspondente encontrado.</td></tr>`; return; }
+        linhas.forEach(l => {
+          let badgeStatus = l.status === "Ativo" ? "bg-success" : "bg-danger";
+          corpo.innerHTML += `<tr><td class="fw-bold text-primary font-monospace">${l.chave}</td><td>${l.colaborador}</td><td><span class="badge bg-secondary text-white">${l.tipo}</span></td><td class="fw-semibold">${l.aluno}</td><td>${l.data}</td><td>${l.horario}</td><td class="text-muted"><i class="fas fa-user-edit"></i> ${l.emissor || 'N/A'}</td><td><span class="badge ${badgeStatus}">${l.status}</span></td></tr>`;
+        });
+      });
+    }
+
+    function gerarCamposMesesAtraso() {
+      const qtd = parseInt(document.getElementById('nd_qtd_meses').value) || 0;
+      const container = document.getElementById('linhasMesesAtraso'); container.innerHTML = "";
+      if (qtd <= 0) { document.getElementById('containerMesesAtraso').classList.add('escondido'); return; }
+      document.getElementById('containerMesesAtraso').classList.remove('escondido');
+      let html = ''; const mesesDoAno = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+      for (let i = 1; i <= qtd; i++) {
+        let opcoesDropdown = mesesDoAno.map(m => `<option value="${m}">${m}</option>`).join('');
+        html += `<div class="row g-2 mb-2 align-items-end"><div class="col-md-6"><label class="small fw-bold">${i}º Mês de Referência:</label><select class="form-select nd_mes_ref_dinamico" required><option value="">Selecione o mês...</option>${opcoesDropdown}</select></div><div class="col-md-6"><label class="small fw-bold">Data do Vencimento:</label><input type="date" class="form-control nd_data_venc_dinamico" required></div></div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function gerarCamposDisciplinas() {
+      const qtd = parseInt(document.getElementById('ds_qtd').value) || 0;
+      const container = document.getElementById('linhasDisciplinas'); container.innerHTML = "";
+      if (qtd <= 0) { document.getElementById('containerDisciplinas').classList.add('escondido'); return; }
+      document.getElementById('containerDisciplinas').classList.remove('escondido');
+      let html = '';
+      for (let i = 1; i <= qtd; i++) {
+        html += `<div class="col-md-6 mb-2"><label class="small fw-bold">Disciplina ${i}:</label><input list="lista-disciplinas" class="form-control ds_disciplina_item" placeholder="Selecione ou digite..." required></div>`;
+      }
+      container.innerHTML = html;
+    }
+    
+    // Função para preencher linhas seguidamente gerando parcelas automáticas
+    function replicarDadosSequenciais(tbodyId) {
+        let tbody = document.getElementById(tbodyId);
+        if(!tbody) return;
+        let rows = tbody.querySelectorAll('tr');
+        if(rows.length <= 1) {
+            alert("A tabela precisa ter mais de uma linha para usar o preenchimento automático.");
+            return;
+        }
+        
+        let rowBase = rows[0];
+        let baseDateInputs = rowBase.querySelectorAll('input[type="date"]');
+        if(baseDateInputs.length === 0 || !baseDateInputs[0].value) {
+            alert("Preencha a data de vencimento da 1ª linha para calcular as seguintes.");
+            return;
+        }
+
+        for(let i = 1; i < rows.length; i++) {
+            let row = rows[i];
+            
+            // Copiar Datas somando 1 mês
+            let dateInputs = row.querySelectorAll('input[type="date"]');
+            for(let j = 0; j < dateInputs.length; j++) {
+                if(baseDateInputs[j] && baseDateInputs[j].value) {
+                    let d = new Date(baseDateInputs[j].value + "T00:00:00");
+                    d.setMonth(d.getMonth() + i);
+                    dateInputs[j].value = d.toISOString().split('T')[0];
+                }
+            }
+            
+            // Copiar outros valores
+            let inputs = row.querySelectorAll('input[type="text"], input[type="number"], select');
+            let baseInputs = rowBase.querySelectorAll('input[type="text"], input[type="number"], select');
+            
+            for(let j = 0; j < inputs.length; j++) {
+                // Pular campos numéricos que contam a parcela e campos readOnly
+                if(inputs[j].classList.contains('pg_numero') || inputs[j].readOnly) continue; 
+                if(baseInputs[j]) {
+                    inputs[j].value = baseInputs[j].value;
+                }
+            }
+        }
+        if(typeof calcularTotaisPagamentos === "function") calcularTotaisPagamentos();
+    }
+    
+    function gerarCamposPagamentos() {
+      const qtd = parseInt(document.getElementById('pg_qtd').value) || 0;
+      const container = document.getElementById('linhasPagamentos');
+      container.innerHTML = "";
+      if (qtd <= 0) { document.getElementById('containerPagamentos').classList.add('escondido'); return; }
+      document.getElementById('containerPagamentos').classList.remove('escondido');
+      
+      let html = `
+      <div class="table-responsive w-100">
+        <table class="tabela-bonita">
+          <thead>
+            <tr>
+              <th class="text-center">Nº</th>
+              <th>Vencimento</th>
+              <th>Val. Contratado (R$)</th>
+              <th>Data Pag.</th>
+              <th>Val. Pago (R$)</th>
+              <th>Forma</th>
+              <th>Situação</th>
+            </tr>
+          </thead>
+          <tbody id="tbody_pagamentos">`;
+          
+      for (let i = 1; i <= qtd; i++) {
+          html += `
+          <tr>
+              <td class="text-center"><input type="text" class="form-control form-control-sm pg_numero bg-light fw-bold text-center border-0" value="${i}" readonly></td>
+              <td><input type="date" class="form-control form-control-sm pg_vencimento" required></td>
+              <td><input type="number" step="0.01" class="form-control form-control-sm pg_val_contratado border-danger" oninput="calcularTotaisPagamentos()" required></td>
+              <td><input type="date" class="form-control form-control-sm pg_data_pag"></td>
+              <td><input type="number" step="0.01" class="form-control form-control-sm pg_val_pago border-success" oninput="calcularTotaisPagamentos()"></td>
+              <td><select class="form-select form-select-sm pg_forma"><option value="">...</option><option value="Pix">Pix</option><option value="Dinheiro">Dinheiro</option><option value="Crédito">Crédito</option><option value="Débito">Débito</option></select></td>
+              <td><select class="form-select form-select-sm pg_situacao"><option value="Quitada">Quitada</option><option value="À Pagar">À Pagar</option><option value="Vencida">Vencida</option></select></td>
+          </tr>`;
+      }
+      
+      html += `</tbody></table></div>`;
+      container.innerHTML = html;
+      calcularTotaisPagamentos();
+    }
+
+    function calcularTotaisPagamentos() {
+        let totalContratado = 0;
+        let totalPago = 0;
+        document.querySelectorAll('.pg_val_contratado').forEach(el => totalContratado += parseFloat(el.value) || 0);
+        document.querySelectorAll('.pg_val_pago').forEach(el => totalPago += parseFloat(el.value) || 0);
+        document.getElementById('pg_total_contratado').value = totalContratado.toFixed(2);
+        document.getElementById('pg_total_pago').value = totalPago.toFixed(2);
+    }
+
+    function preencherAssinaturas() {
+      let options = `<option value="">Selecione...</option><option value="Coordenador">Davi Felício - Coordenador</option><option value="Gerente">Eksele Matos - Gerente Comercial</option><option value="Instrutor">Theo Araujo - Instrutor</option><option value="Secretario">Paulo Henrique - Secretário</option>`;
+      document.querySelectorAll('.select-assinatura').forEach(sel => sel.innerHTML = options);
+    }
+
+    function fazerLogin() {
+      const senha = document.getElementById('inputSenha').value;
+      if (senhasColaboradores[senha]) {
+        usuarioAtivo = senhasColaboradores[senha];
+        document.getElementById('nomeColaboradorDisplay').innerText = usuarioAtivo;
+        document.getElementById('telaLogin').classList.add('escondido');
+        document.getElementById('painelGeracao').classList.remove('escondido');
+        preencherAssinaturas(); atualizarTabelaInterna();
+      } else { alert("⚠️ Chave de Acesso Incorreta."); }
+    }
+
+    function sair() {
+      usuarioAtivo = ""; document.getElementById('inputSenha').value = "";
+      document.getElementById('painelGeracao').classList.add('escondido');
+      document.getElementById('telaLogin').classList.remove('escondido');
+    }
+
+    function alternarTipoComp() {
+      let v = document.getElementById('tipo_comp_selector').value;
+      ['4','5','6'].forEach(id => { document.getElementById('bloco_comp_' + id).classList.add('escondido'); });
+      if(v) document.getElementById('bloco_comp_' + v).classList.remove('escondido'); 
+    }
+
+    function alternarTipoEstorno() {
+      let v = document.getElementById('tipo_estorno_selector').value;
+      ['11a','11b','11c'].forEach(id => { document.getElementById('bloco_estorno_' + id).classList.add('escondido'); });
+      if(v) {
+        document.getElementById('bloco_estorno_' + v).classList.remove('escondido');
+        if(v === '11b') { calcularDataDezDiasUteis(); }
+      }
+    }
+
+    function calcularDataDezDiasUteis() {
+      let hoje = new Date(); let cont = 0;
+      while(cont < 10) {
+        hoje.setDate(hoje.getDate() + 1);
+        let dSemana = hoje.getDay();
+        if(dSemana !== 0 && dSemana !== 6) { cont++; }
+      }
+      let dStr = hoje.getDate() < 10 ? "0"+hoje.getDate() : hoje.getDate();
+      let mStr = (hoje.getMonth()+1) < 10 ? "0"+(hoje.getMonth()+1) : (hoje.getMonth()+1);
+      let dataFinalPtBr = dStr + "/" + mStr + "/" + hoje.getFullYear();
+      let dataFinalIso = hoje.getFullYear() + "-" + mStr + "-" + dStr;
+      
+      document.getElementById('eu_data_limite_display').value = dataFinalPtBr + " (10 Dias Úteis Conforme Contrato)";
+      document.getElementById('eu_data_limite').value = dataFinalIso;
+    }
+
+    function aplicarMascaraPix(prefixo) {
+      let tipo = document.getElementById(prefixo + '_chave_tipo').value;
+      let campo = document.getElementById(prefixo + '_chave');
+      campo.value = ""; campo.removeAttribute("maxlength"); campo.oninput = null;
+      if(tipo === "CPF") { campo.setAttribute("maxlength", "14"); campo.oninput = function() { mascaraCPF(this); }; campo.placeholder = "000.000.000-00"; }
+      else if(tipo === "CNPJ") { campo.setAttribute("maxlength", "18"); campo.oninput = function() { mascaraCNPJ(this); }; campo.placeholder = "00.000.000/0001-00"; }
+      else if(tipo === "Celular") { campo.setAttribute("maxlength", "15"); campo.oninput = function() { mascaraCelular(this); }; campo.placeholder = "(79) 99999-0000"; }
+      else if(tipo === "E-mail") { campo.placeholder = "exemplo@escola.com"; }
+      else { campo.placeholder = "Chave Aleatória de 32 dígitos"; }
+    }
+
+    function vincularMesmoTitular(prefixo) {
+      let ck = document.getElementById(prefixo + '_check_mesmo_titular').checked;
+      let campoNomeContratante = (prefixo === 'ep') ? document.getElementById('ep_responsavel').value : document.getElementById('eu_responsavel').value;
+      let campoCpfContratante = (prefixo === 'ep') ? document.getElementById('ep_cpf_responsavel').value : document.getElementById('eu_cpf_responsavel').value;
+      
+      if(ck) {
+        document.getElementById(prefixo + '_titular').value = campoNomeContratante;
+        document.getElementById(prefixo + '_cpf_titular').value = campoCpfContratante;
+      } else {
+        document.getElementById(prefixo + '_titular').value = "";
+        document.getElementById(prefixo + '_cpf_titular').value = "";
+      }
+    }
+
+    function ajustarCampoIdade() {
+      let v = document.getElementById('cd_maioridade_tipo').value;
+      if(v === 'menor') document.getElementById('containerIdadeManual').classList.remove('escondido');
+      else document.getElementById('containerIdadeManual').classList.add('escondido');
+    }
+
+    function alternarCamposOpcao(opcao) {
+      let cb = document.getElementById('cd_check_' + opcao).checked;
+      let target = document.getElementById('box_cd_' + opcao);
+      if(cb) target.classList.remove('escondido'); else target.classList.add('escondido');
+      calcularLogicaDívida();
+    }
+
+    function alternarResponsavelCertificado() {
+      let v = document.getElementById('cer_menor').value;
+      if(v === 'sim') document.getElementById('box_responsavel_certificado').classList.remove('escondido');
+      else document.getElementById('box_responsavel_certificado').classList.add('escondido');
+    }
+
+    function calcularLogicaDívida() {
+      let total = parseFloat(document.getElementById('cd_valor_total').value) || 0;
+      let entrada = 0;
+      if(document.getElementById('cd_check_entrada').checked) { entrada = parseFloat(document.getElementById('cd_entrada_valor').value) || 0; }
+      let restante = total - entrada; if(restante < 0) restante = 0;
+      document.getElementById('cd_valor_restante_display').value = restante.toFixed(2);
+
+      if(!document.getElementById('cd_check_entrada').checked) { document.getElementById('cd_avista_valor').value = total.toFixed(2); }
+      else { document.getElementById('cd_avista_valor').value = restante.toFixed(2); }
+
+      if(document.getElementById('cd_check_boleto').checked) {
+        let qtdB = parseInt(document.getElementById('cd_boleto_qtd').value) || 1;
+        let parcB = restante / qtdB; document.getElementById('cd_boleto_valor_parc').value = parcB.toFixed(2);
+      }
+      if(document.getElementById('cd_check_cartao').checked) {
+        let qtdC = parseInt(document.getElementById('cd_cartao_qtd').value) || 1;
+        let parcC = restante / qtdC; document.getElementById('cd_cartao_valor_parc').value = parcC.toFixed(2);
+      }
+    }
+
+    function calcularEstorno11a() {
+      let pago = parseFloat(document.getElementById('ep_valor_pago').value) || 0;
+      let multa = parseFloat(document.getElementById('ep_valor_multa').value) || 0;
+      valorEstornoFinal = pago - multa; document.getElementById('ep_valor_estorno_calculado').value = valorEstornoFinal.toFixed(2);
+      gerarCamposParcelas11a();
+    }
+
+    function alternarMesesCursados11b() {
+      let v = document.getElementById('eu_meses_cursados_sel').value;
+      if (v === 'sim') {
+        document.getElementById('box_eu_meses_uso').classList.remove('escondido');
+      } else {
+        document.getElementById('box_eu_meses_uso').classList.add('escondido');
+        document.getElementById('eu_meses_uso').value = "";
+      }
+      calcularEstorno11b();
+    }
+
+    function calcularEstorno11b() {
+      let total = parseFloat(document.getElementById('eu_valor_total').value) || 0;
+      let taxaPct = parseFloat(document.getElementById('eu_taxa_cartao_sel').value) || 0;
+      
+      let multa = total * 0.10; 
+      let taxaVal = total * taxaPct;
+      
+      let uso = 0;
+      if (document.getElementById('eu_meses_cursados_sel').value === 'sim') {
+        uso = parseFloat(document.getElementById('eu_meses_uso').value) || 0;
+      }
+      
+      let devolucao = total - multa - taxaVal - uso;
+      if (devolucao < 0) devolucao = 0;
+      
+      document.getElementById('eu_valor_multa').value = multa.toFixed(2);
+      document.getElementById('eu_valor_taxa').value = taxaVal.toFixed(2);
+      document.getElementById('eu_valor_estorno').value = devolucao.toFixed(2);
+    }
+
+    function gerarCamposParcelas11a() {
+      let qtd = parseInt(document.getElementById('ep_qtd_parcelas').value) || 0;
+      let dataIniStr = document.getElementById('ep_primeira_data').value;
+      let html = '';
+      if(qtd > 0 && dataIniStr) {
+         document.getElementById('containerParcelas').classList.remove('escondido');
+         let valParcela = (valorEstornoFinal / qtd).toFixed(2);
+         
+         html = `
+          <div class="table-responsive w-100">
+            <table class="tabela-bonita">
+              <thead>
+                <tr>
+                  <th class="text-center">Parcela</th>
+                  <th>Data de Vencimento</th>
+                  <th>Valor (R$)</th>
+                </tr>
+              </thead>
+              <tbody id="tbody_parcelas_11a">`;
+              
+         for(let i=1; i<=qtd; i++) {
+           html += `
+             <tr>
+               <td class="text-center fw-bold bg-light">${i}</td>
+               <td><input type="date" class="form-control form-control-sm ep_data_parc" required></td>
+               <td><input type="number" step="0.01" class="form-control form-control-sm ep_valor_parc" value="${valParcela}" required></td>
+             </tr>`;
+         }
+         html += `</tbody></table></div>`;
+         
+         setTimeout(() => {
+            let firstDateInput = document.querySelector('.ep_data_parc');
+            if(firstDateInput && dataIniStr) firstDateInput.value = dataIniStr;
+         }, 50);
+         
+      } else { document.getElementById('containerParcelas').classList.add('escondido'); }
+      document.getElementById('linhasParcelas').innerHTML = html;
+    }
+
+    function preencherExtenso() {
+      let v = parseFloat(document.getElementById('rm_valor').value) || 0;
+      if (v > 0) {
+        document.getElementById('rm_valor_extenso').value = "A quantia exata de " + valorPorExtenso(v);
+      } else {
+        document.getElementById('rm_valor_extenso').value = "";
+      }
+    }
+
+    function valorPorExtenso(numero) {
+      const unidades = ["", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove"];
+      const dezenasEspeciais = ["dez", "onze", "doze", "treze", "quatorze", "quinze", "dezesseis", "dezessete", "dezoito", "dezenove"];
+      const dezenas = ["", "", "vinte", "trinta", "quarenta", "cinquenta", "sessenta", "setenta", "oitenta", "noventa"];
+      const centenas = ["", "cento", "duzentos", "trezentos", "quatrocentos", "quinhentos", "seiscentos", "setecentos", "oitocentos", "novecentos"];
+
+      function converteGrupo(n) {
+        if (n === 100) return "cem";
+        let c = Math.floor(n / 100);
+        let d = Math.floor((n % 100) / 10);
+        let u = n % 10;
+        let res = [];
+        if (c > 0) res.push(centenas[c]);
+        if (d === 1) {
+          res.push(dezenasEspeciais[u]);
+        } else {
+          if (d > 1) res.push(dezenas[d]);
+          if (u > 0) res.push(unidades[u]);
+        }
+        return res.join(" e ");
+      }
+
+      let reais = Math.floor(numero);
+      let centavos = Math.round((numero - reais) * 100);
+      let extenso = [];
+
+      if (reais > 0) {
+        let milhoes = Math.floor(reais / 1000000);
+        let milhares = Math.floor((reais % 1000000) / 1000);
+        let rest_reais = reais % 1000;
+
+        if (milhoes > 0) extenso.push(converteGrupo(milhoes) + (milhoes === 1 ? " milhão" : " milhões"));
+        if (milhares > 0) extenso.push(converteGrupo(milhares) + " mil");
+        if (rest_reais > 0) extenso.push(converteGrupo(rest_reais));
+
+        let txtReais = extenso.join(" e ");
+        txtReais += reais === 1 ? " real" : " reais";
+        
+        if (milhoes > 0 && milhares === 0 && rest_reais === 0) txtReais = txtReais.replace("reais", "de reais");
+        
+        extenso = [txtReais];
+      }
+
+      if (centavos > 0) {
+        let txtCentavos = converteGrupo(centavos) + (centavos === 1 ? " centavo" : " centavos");
+        if (reais > 0) extenso.push("e " + txtCentavos);
+        else extenso.push(txtCentavos);
+      }
+
+      return extenso.join(" ");
+    }
+
+    function gerarCamposAgenda() {
+      const freq = parseInt(document.getElementById('ma_frequencia').value) || 0;
+      const linhasAlvo = document.getElementById('linhasDinâmicasAgenda'); linhasAlvo.innerHTML = "";
+      if (freq <= 0) { document.getElementById('containerAgenda').classList.add('escondido'); return; }
+      document.getElementById('containerAgenda').classList.remove('escondido');
+      for (let i = 1; i <= freq; i++) {
+        linhasAlvo.innerHTML += `<div class="row g-2 mb-2"><div class="col-md-6"><select class="form-select seletor-dia-dinamico" required><option value="">Dia...</option><option value="Segunda-Feira">Segunda</option><option value="Terça-Feira">Terça</option><option value="Quarta-Feira">Quarta</option><option value="Quinta-Feira">Quinta</option><option value="Sexta-Feira">Sexta</option><option value="Sábado">Sábado</option></select></div><div class="col-md-6"><select class="form-select seletor-hora-dinamico" required><option value="">Horário...</option><option value="07:00 às 09:00">07:00 às 09:00</option><option value="09:00 às 11:00">09:00 às 11:00</option><option value="11:00 às 13:00">11:00 às 13:00</option><option value="13:00 às 15:00">13:00 às 15:00</option><option value="15:00 às 17:00">15:00 às 17:00</option><option value="17:00 às 19:00">17:00 às 19:00</option></select></div></div>`;
+      }
+    }
+
+    function processarEmissao(idForm, e) {
+      let dados = { colaborador: usuarioAtivo }; let funcao = ""; let idRes = "areaResultado" + idForm;
+      
+      if(idForm === 1) {
+        dados.nomeAluno = document.getElementById('ma_nome').value; dados.matricula = document.getElementById('ma_matricula').value; dados.cpf = document.getElementById('ma_cpf').value; dados.curso = document.getElementById('ma_curso').value; dados.dataInicio = document.getElementById('ma_data_inicio').value; dados.dataFim = document.getElementById('ma_data_fim').value; dados.assinatura = document.getElementById('ma_assinatura').value; dados.agenda = [];
+        document.querySelectorAll('.seletor-dia-dinamico').forEach((el, idx) => { if(el.value) dados.agenda.push({dia: el.value, horario: document.querySelectorAll('.seletor-hora-dinamico')[idx].value}); });
+        funcao = "publicarDocumentoMatricula";
+      }
+      else if(idForm === 2) {
+        dados.responsavel = document.getElementById('tc_responsavel').value; dados.cpfResponsavel = document.getElementById('tc_cpf_responsavel').value; dados.nomeAluno = document.getElementById('tc_nome_aluno').value; dados.matricula = document.getElementById('tc_matricula').value; dados.cursoAnterior = document.getElementById('tc_curso_anterior').value; dados.cursoNovo = document.getElementById('tc_curso_novo').value; dados.assinatura = document.getElementById('tc_assinatura').value;
+        funcao = "publicarDocumentoTrocaCurso";
+      }
+      else if(idForm === 3) {
+        dados.responsavel = document.getElementById('ds_responsavel').value; dados.cpfResponsavel = document.getElementById('ds_cpf_responsavel').value; dados.nomeAluno = document.getElementById('ds_nome_aluno').value; dados.matricula = document.getElementById('ds_matricula').value; dados.assinatura = document.getElementById('ds_assinatura').value; dados.disciplinas = [];
+        document.querySelectorAll('.ds_disciplina_item').forEach(el => { if(el.value) dados.disciplinas.push(el.value); });
+        funcao = "publicarDocumentoDesistencia";
+      }
+      else if(idForm === 4) {
+        dados.nomeAluno = document.getElementById('ca_nome').value; dados.matricula = document.getElementById('ca_matricula').value; dados.cpf = document.getElementById('ca_cpf').value; dados.curso = document.getElementById('ca_curso').value; dados.horaInicio = document.getElementById('ca_hora_inicio').value; dados.horaFim = document.getElementById('ca_hora_fim').value; dados.assinatura = document.getElementById('ca_assinatura').value;
+        funcao = "publicarDocumentoComparecimentoAluno";
+      }
+      else if(idForm === 5) {
+        dados.nomeAluno = document.getElementById('cg_nome').value; dados.cpf = document.getElementById('cg_cpf').value; dados.curso = document.getElementById('cg_curso').value; dados.horaInicio = document.getElementById('cg_hora_inicio').value; dados.horaFim = document.getElementById('cg_hora_fim').value; dados.assinatura = document.getElementById('cg_assinatura').value;
+        funcao = "publicarDocumentoComparecimentoGratuito";
+      }
+      else if(idForm === 6) {
+        dados.nomeAluno = document.getElementById('cge_nome').value; dados.cpf = document.getElementById('cge_cpf').value; dados.horaInicio = document.getElementById('cge_hora_inicio').value; dados.horaFim = document.getElementById('cge_hora_fim').value; dados.assinatura = document.getElementById('cge_assinatura').value;
+        funcao = "publicarDocumentoComparecimentoGeral";
+      }
+      else if(idForm === 10) {
+        dados.responsavel = document.getElementById('re_responsavel').value; dados.cpfResponsavel = document.getElementById('re_cpf_responsavel').value; dados.nomeAluno = document.getElementById('re_nome_aluno').value; dados.data = document.getElementById('re_data').value; dados.horario = document.getElementById('re_hora').value; dados.assinatura = document.getElementById('re_assinatura').value;
+        funcao = "publicarDocumentoReuniao";
+      }
+      else if(idForm === '11a') {
+        dados.responsavel = document.getElementById('ep_responsavel').value; dados.cpfResponsavel = document.getElementById('ep_cpf_responsavel').value; dados.dataContratacao = document.getElementById('ep_data_contrato').value; dados.nomeAluno = document.getElementById('ep_nome_aluno').value; dados.matricula = document.getElementById('ep_matricula').value; dados.valorPago = document.getElementById('ep_valor_pago').value; dados.valorMulta = document.getElementById('ep_valor_multa').value; dados.valorEstorno = document.getElementById('ep_valor_estorno_calculado').value; dados.chaveTipo = document.getElementById('ep_chave_tipo').value; dados.chave = document.getElementById('ep_chave').value; dados.titular = document.getElementById('ep_titular').value; dados.cpfTitular = document.getElementById('ep_cpf_titular').value; dados.assinatura = document.getElementById('ep_assinatura').value;
+        dados.parcelas = [];
+        document.querySelectorAll('.ep_data_parc').forEach((el, idx) => {
+          if(el.value) dados.parcelas.push({data: el.value, valor: document.querySelectorAll('.ep_valor_parc')[idx].value});
+        });
+        funcao = "publicarDocumentoEstornoParcelado";
+      }
+      else if(idForm === '11b') {
+        dados.responsavel = document.getElementById('eu_responsavel').value; dados.cpfResponsavel = document.getElementById('eu_cpf_responsavel').value; dados.nomeAluno = document.getElementById('eu_nome_aluno').value; dados.matricula = document.getElementById('eu_matricula').value; dados.valorTotal = document.getElementById('eu_valor_total').value; dados.valorMulta = document.getElementById('eu_valor_multa').value; dados.valorTaxa = document.getElementById('eu_valor_taxa').value; dados.valorEstorno = document.getElementById('eu_valor_estorno').value; dados.dataLimite = document.getElementById('eu_data_limite').value; dados.chaveTipo = document.getElementById('eu_chave_tipo').value; dados.chave = document.getElementById('eu_chave').value; dados.titular = document.getElementById('eu_titular').value; dados.cpfTitular = document.getElementById('eu_cpf_titular').value; dados.assinatura = document.getElementById('eu_assinatura').value;
+        funcao = "publicarDocumentoEstornoUnica";
+      }
+      else if(idForm === '11c') {
+        dados.responsavel = document.getElementById('rm_responsavel').value; dados.cpfResponsavel = document.getElementById('rm_cpf_responsavel').value; dados.nomeAluno = document.getElementById('rm_nome_aluno').value; dados.matricula = document.getElementById('rm_matricula').value; dados.valor = document.getElementById('rm_valor').value; dados.assinatura = document.getElementById('rm_assinatura').value;
+        funcao = "publicarDocumentoReembolsoMatricula";
+      }
+      else if(idForm === 13) {
+        dados.responsavel = document.getElementById('ex_responsavel').value; dados.cpfResponsavel = document.getElementById('ex_cpf_responsavel').value; dados.nomeAluno = document.getElementById('ex_nome_aluno').value; dados.matricula = document.getElementById('ex_matricula').value; dados.meses = document.getElementById('ex_meses').value; dados.curso = document.getElementById('ex_curso').value; dados.dataInicio = document.getElementById('ex_data_inicio').value; dados.dataFim = document.getElementById('ex_data_fim').value; dados.assinatura = document.getElementById('ex_assinatura').value;
+        funcao = "publicarDocumentoExtensaoCurso";
+      }
+      else if(idForm === 14) {
+        dados.responsavel = document.getElementById('cd_responsavel').value; dados.cpfResponsavel = document.getElementById('cd_cpf_responsavel').value; dados.matricula = document.getElementById('cd_matricula').value; dados.nomeAluno = document.getElementById('cd_nome_aluno').value; dados.anoLetivo = document.getElementById('cd_ano_letivo').value; dados.endereco = document.getElementById('cd_endereco').value; dados.numCasa = document.getElementById('cd_num_casa').value; dados.bairro = document.getElementById('cd_bairro').value; dados.cidade = document.getElementById('cd_cidade').value; dados.estado = document.getElementById('cd_estado').value; dados.cep = document.getElementById('cd_cep').value; dados.valorTotal = document.getElementById('cd_valor_total').value; dados.assinatura = document.getElementById('cd_assinatura').value;
+        dados.maioridadeTipo = document.getElementById('cd_maioridade_tipo').value;
+        dados.maioridadeTexto = dados.maioridadeTipo === 'menor' ? document.getElementById('cd_idade_manual').value : "maior de 18 anos";
+        
+        dados.entradaAtiva = document.getElementById('cd_check_entrada').checked;
+        dados.entradaValor = document.getElementById('cd_entrada_valor').value;
+        dados.entradaData = document.getElementById('cd_entrada_data').value;
+        dados.aVistaAtiva = document.getElementById('cd_check_avista').checked;
+        dados.aVistaValor = document.getElementById('cd_avista_valor').value;
+        dados.aVistaData = document.getElementById('cd_avista_data').value;
+        dados.boletoAtivo = document.getElementById('cd_check_boleto').checked;
+        dados.boletoQtd = document.getElementById('cd_boleto_qtd').value;
+        dados.boletoValorParc = document.getElementById('cd_boleto_valor_parc').value;
+        dados.cartaoAtivo = document.getElementById('cd_check_cartao').checked;
+        dados.cartaoQtd = document.getElementById('cd_cartao_qtd').value;
+        dados.cartaoValorParc = document.getElementById('cd_cartao_valor_parc').value;
+        
+        dados.boletoParcelas = [];
+        if(dados.boletoAtivo) {
+          let dtBase = new Date(document.getElementById('cd_boleto_data_base').value);
+          let vp = parseFloat(dados.boletoValorParc) || 0;
+          let qb = parseInt(dados.boletoQtd) || 0;
+          for(let i=1; i<=qb; i++) {
+            dtBase.setMonth(dtBase.getMonth() + 1);
+            let dIso = dtBase.toISOString().split('T')[0];
+            dados.boletoParcelas.push({data: dIso, valor: vp});
+          }
+        }
+        funcao = "publicarDocumentoConfissaoDivida";
+      }
+      else if(idForm === 15) {
+        dados.antigoNome = document.getElementById('ar_antigo_nome').value; dados.antigoNacionalidade = document.getElementById('ar_antigo_nacionalidade').value; dados.antigoEstadoCivil = document.getElementById('ar_antigo_estado_civil').value; dados.antigoProfissao = document.getElementById('ar_antigo_profissao').value; dados.antigoCpf = document.getElementById('ar_antigo_cpf').value; dados.antigoEndereco = document.getElementById('ar_antigo_endereco').value; dados.antigoNum = document.getElementById('ar_antigo_num').value; dados.antigoBairro = document.getElementById('ar_antigo_bairro').value; dados.antigoCidade = document.getElementById('ar_antigo_cidade').value; dados.antigoEstado = document.getElementById('ar_antigo_estado').value;
+        dados.novoNome = document.getElementById('ar_novo_nome').value; dados.novoNacionalidade = document.getElementById('ar_novo_nacionalidade').value; dados.novoEstadoCivil = document.getElementById('ar_novo_estado_civil').value; dados.novoProfissao = document.getElementById('ar_novo_profissao').value; dados.novoCpf = document.getElementById('ar_novo_cpf').value; dados.novoTelefone = document.getElementById('ar_novo_telefone').value; dados.novoEndereco = document.getElementById('ar_novo_endereco').value; dados.novoNum = document.getElementById('ar_novo_num').value; dados.novoBairro = document.getElementById('ar_novo_bairro').value; dados.novoCidade = document.getElementById('ar_novo_cidade').value; dados.novoEstado = document.getElementById('ar_novo_estado').value;
+        dados.matricula = document.getElementById('ar_matricula').value; dados.nomeAluno = document.getElementById('ar_aluno').value; dados.curso = document.getElementById('ar_curso').value;
+        funcao = "publicarDocumentoAlteracaoResponsabilidade";
+      }
+      else if(idForm === 16) {
+        dados.contratoOriginal = document.getElementById('tad_original').value; dados.contratante = document.getElementById('tad_contratante').value; dados.cpf = document.getElementById('tad_cpf').value; dados.rua = document.getElementById('tad_rua').value; dados.num = document.getElementById('tad_num').value; dados.cidade = document.getElementById('tad_cidade').value; dados.estado = document.getElementById('tad_estado').value; dados.cep = document.getElementById('tad_cep').value; dados.curso = document.getElementById('tad_curso').value; dados.meses = document.getElementById('tad_meses').value; dados.qtdMensalidades = document.getElementById('tad_qtd_mensalidades').value; dados.valorMensalidade = document.getElementById('tad_valor').value; dados.dataPrimeiraMensalidade = document.getElementById('tad_data_primeira').value; dados.assinatura = document.getElementById('tad_signature').value;
+        funcao = "publicarDocumentoTermoAditivo";
+      }
+      else if(idForm === 17) {
+        dados.nomeAluno = document.getElementById('cer_aluno').value; dados.cpf = document.getElementById('cer_cpf').value; dados.matricula = document.getElementById('cer_matricula').value; dados.curso = document.getElementById('cer_curso').value; dados.dataInicio = document.getElementById('cer_inicio').value; dados.dataFim = document.getElementById('cer_fim').value; dados.mediaGeral = document.getElementById('cer_media').value; dados.dataEntrega = document.getElementById('cer_data_entrega').value; dados.menorIdade = document.getElementById('cer_menor').value; dados.responsavel = document.getElementById('cer_responsavel').value; dados.cpfResponsavel = document.getElementById('cer_cpf_responsavel').value; dados.assinatura = document.getElementById('cer_assinatura').value;
+        funcao = "publicarDocumentoEntregaCertificado";
+      }
+      else if(idForm === 18) {
+        dados.responsavel = document.getElementById('nd_responsavel').value; dados.cpf = document.getElementById('nd_cpf').value; dados.nomeAluno = document.getElementById('nd_aluno').value; dados.matricula = document.getElementById('nd_matricula').value; dados.valorOriginal = document.getElementById('nd_valor_original').value; dados.valorAtualizado = document.getElementById('nd_valor_atual').value; dados.dataLimite = document.getElementById('nd_data_limite').value; dados.assinatura = document.getElementById('nd_assinatura').value;
+        dados.mesesRef = ""; dados.datasVencimento = "";
+        let refs = [], vencs = [];
+        document.querySelectorAll('.nd_mes_ref_dinamico').forEach(el => { if(el.value) refs.push(el.value); });
+        document.querySelectorAll('.nd_data_venc_dinamico').forEach(el => { if(el.value) vencs.push(el.value.split('-').reverse().join('/')); });
+        dados.mesesRef = refs.join(', '); dados.datasVencimento = vencs.join(', ');
+        
+        dados.opcBoleto = document.getElementById('nd_ck_boleto').checked;
+        dados.txtBoleto = "em até " + document.getElementById('nd_sel_boleto').value + " parcelas fixas.";
+        dados.opcPix = document.getElementById('nd_ck_pix').checked;
+        dados.opcCartao = document.getElementById('nd_ck_cartao').checked;
+        dados.txtCartao = "em até " + document.getElementById('nd_sel_cartao').value + " vezes sem juros.";
+        funcao = "publicarDocumentoNotificacaoDebito";
+      }
+      else if(idForm === 19) {
+        dados.responsavel = document.getElementById('pg_responsavel').value;
+        dados.cpfResponsavel = document.getElementById('pg_cpf_responsavel').value;
+        dados.nomeAluno = document.getElementById('pg_nome_aluno').value;
+        dados.matricula = document.getElementById('pg_matricula').value;
+        dados.ano = document.getElementById('pg_ano').value;
+        dados.assinatura = document.getElementById('pg_assinatura').value;
+        dados.totalContratado = document.getElementById('pg_total_contratado').value;
+        dados.totalPago = document.getElementById('pg_total_pago').value;
+        
+        dados.pagamentos = [];
+        let numEls = document.querySelectorAll('.pg_numero');
+        let vencEls = document.querySelectorAll('.pg_vencimento');
+        let valContEls = document.querySelectorAll('.pg_val_contratado');
+        let dataPagEls = document.querySelectorAll('.pg_data_pag');
+        let valPagoEls = document.querySelectorAll('.pg_val_pago');
+        let formaEls = document.querySelectorAll('.pg_forma');
+        let sitEls = document.querySelectorAll('.pg_situacao');
+        
+        for(let i=0; i < numEls.length; i++) {
+          dados.pagamentos.push({
+            numero: numEls[i].value,
+            vencimento: vencEls[i].value,
+            valorContratado: valContEls[i].value,
+            dataPagamento: dataPagEls[i].value,
+            valorPago: valPagoEls[i].value,
+            forma: formaEls[i].value,
+            situacao: sitEls[i].value
+          });
+        }
+        funcao = "publicarDocumentoPagamentos";
+      }
+
+      let btn = e.target;
+      if(btn.tagName === "I") btn = btn.parentElement;
+      let oldHTML = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...'; btn.disabled = true;
+
+      chamarBackend(funcao, dados, 
+        function(res) {
+          btn.innerHTML = oldHTML; btn.disabled = false;
+          let container = document.getElementById(idRes);
+          if(res.sucesso) {
+            container.innerHTML = `
+              <div class="alert alert-success mt-4 shadow-sm" style="border-left: 5px solid #16A34A;">
+                <h5 class="fw-bold"><i class="fas fa-check-circle"></i> Documento Emitido!</h5>
+                <p class="mb-2"><strong>Chave:</strong> ${res.idGerado}</p>
+                
+                <div class="doc-container mb-3">
+                  <a href="${res.urlWord}" class="doc-card text-decoration-none" target="_blank"><i class="fas fa-file-word doc-icon text-primary"></i><div class="doc-title">Baixar Word</div><span class="btn-baixar bg-primary">Download</span></a>
+                  <a href="${res.urlPdf}" class="doc-card text-decoration-none" target="_blank"><i class="fas fa-file-pdf doc-icon text-danger"></i><div class="doc-title">Baixar PDF</div><span class="btn-baixar bg-danger">Download</span></a>
+                  <a href="${res.urlGoogleDocs}" class="doc-card text-decoration-none" target="_blank"><i class="fas fa-file-alt doc-icon text-success"></i><div class="doc-title">Google Docs</div><span class="btn-baixar bg-success">Abrir Arquivo</span></a>
+                </div>
+                
+                <hr style="border-color: #a7f3d0; margin-top: 25px;">
+                
+                <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-eye"></i> Visualização do Documento:</h6>
+                <iframe src="${res.urlPreview}" width="100%" height="600px" style="border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);"></iframe>
+              </div>`;
+            limparFormularioTrabalhado(idForm);
+            atualizarTabelaInterna();
+          } else {
+            container.innerHTML = `<div class="alert alert-danger mt-4"><i class="fas fa-exclamation-triangle"></i> Erro: ${res.msg}</div>`;
+          }
+        },
+        function(err) {
+          btn.innerHTML = oldHTML; btn.disabled = false;
+          document.getElementById(idRes).innerHTML = `<div class="alert alert-danger mt-4"><i class="fas fa-exclamation-triangle"></i> Erro de Comunicação: ${err.message}</div>`;
+        }
+      );
+    }
+
+    // Funções Utilitárias e Máscaras
+    function mascaraCPF(i){
+       let v = i.value.replace(/\D/g,"");
+       v = v.replace(/(\d{3})(\d)/,"$1.$2");
+       v = v.replace(/(\d{3})(\d)/,"$1.$2");
+       v = v.replace(/(\d{3})(\d{1,2})$/,"$1-$2");
+       i.value = v;
+    }
+    function mascaraCNPJ(i){
+       let v = i.value.replace(/\D/g,"");
+       v = v.replace(/^(\d{2})(\d)/,"$1.$2");
+       v = v.replace(/^(\d{2})\.(\d{3})(\d)/,"$1.$2.$3");
+       v = v.replace(/\.(\d{3})(\d)/,".$1/$2");
+       v = v.replace(/(\d{4})(\d)/,"$1-$2");
+       i.value = v;
+    }
+    function mascaraMutavel(i){
+       let v = i.value.replace(/\D/g,"");
+       if(v.length <= 11) mascaraCPF(i); else mascaraCNPJ(i);
+    }
+    function mascaraCEP(i){
+       let v = i.value.replace(/\D/g,"");
+       v = v.replace(/^(\d{5})(\d)/,"$1-$2");
+       i.value = v;
+    }
+    function mascaraCelular(i){
+       let v = i.value.replace(/\D/g,"");
+       v = v.replace(/^(\d{2})(\d)/g,"($1) $2");
+       v = v.replace(/(\d)(\d{4})$/,"$1-$2");
+       i.value = v;
+    }
+    function validarNotaMédia(i){
+       let v = i.value.replace(/[^0-9,]/g,"");
+       if(v.includes(',')){
+         let parts = v.split(',');
+         if(parts.length > 2) v = parts[0] + ',' + parts.slice(1).join('');
+         if(parts[1] && parts[1].length > 2) v = parts[0] + ',' + parts[1].substring(0,2);
+       }
+       let num = parseFloat(v.replace(',','.'));
+       if(num > 10) v = "10,00";
+       i.value = v;
+    }
+  </script>
+</body>
+</html>
