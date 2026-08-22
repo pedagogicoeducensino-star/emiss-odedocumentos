@@ -37,8 +37,20 @@
     .btn-primario { background-color: var(--primaria); color: white; border: none; font-weight: 600; padding: 12px 24px; border-radius: 8px; transition: all 0.2s; }
     .btn-primario:hover { background-color: var(--primaria-hover); color: white; transform: translateY(-2px); }
     
-    .form-control, .form-select { border-color: var(--cinza-borda); border-radius: 8px; padding: 10px 14px; font-size: 15px; }
-    .form-control:focus, .form-select:focus { border-color: var(--primaria); box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15); }
+    /* MODIFICADO: Estilo atualizado para destacar as caixinhas com borda laranjinha e fundo sutil */
+    .form-control, .form-select { 
+      border: 1px solid #FDBA74; 
+      background-color: #FFFaf5; 
+      border-radius: 8px; 
+      padding: 10px 14px; 
+      font-size: 15px; 
+    }
+    .form-control:focus, .form-select:focus { 
+      border-color: var(--primaria); 
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15); 
+    }
+    
     .escondido { display: none !important; }
     .box-dinamica { background-color: #F8FAFC; border: 1px dashed var(--primaria); border-radius: 8px; padding: 16px; margin-top: 15px; }
     
@@ -83,6 +95,8 @@
       border-radius: 4px;
       border: 1px solid #ccc;
       width: 100%;
+      /* Reseta a cor de fundo nas tabelinhas se preferir */
+      background-color: #ffffff; 
     }
     .tabela-bonita input.form-control-sm, .tabela-bonita select.form-select-sm {
       padding: 4px 8px;
@@ -1319,7 +1333,16 @@ function preencherAssinaturas() {
         funcao = "publicarDocumentoExtensaoCurso";
       }
       else if(idForm === 14) {
-        dados.responsavel = document.getElementById('cd_responsavel').value; dados.cpfResponsavel = document.getElementById('cd_cpf_responsavel').value; dados.matricula = document.getElementById('cd_matricula').value; dados.nomeAluno = document.getElementById('cd_nome_aluno').value; dados.anoLetivo = document.getElementById('cd_ano_letivo').value; dados.endereco = document.getElementById('cd_endereco').value; dados.numCasa = document.getElementById('cd_num_casa').value; dados.bairro = document.getElementById('cd_bairro').value; dados.cidade = document.getElementById('cd_cidade').value; dados.estado = document.getElementById('cd_estado').value; dados.cep = document.getElementById('cd_cep').value; dados.valorTotal = document.getElementById('cd_valor_total').value; dados.assinatura = document.getElementById('cd_assinatura').value;
+        dados.responsavel = document.getElementById('cd_responsavel').value; dados.cpfResponsavel = document.getElementById('cd_cpf_responsavel').value; dados.matricula = document.getElementById('cd_matricula').value; dados.nomeAluno = document.getElementById('cd_nome_aluno').value; dados.anoLetivo = document.getElementById('cd_ano_letivo').value; dados.endereco = document.getElementById('cd_endereco').value; dados.numCasa = document.getElementById('cd_num_casa').value; dados.bairro = document.getElementById('cd_bairro').value; dados.cidade = document.getElementById('cd_cidade').value; dados.estado = document.getElementById('cd_estado').value; dados.cep = document.getElementById('cd_cep').value; 
+        
+        // MODIFICADO: Calculando e enviando os valores totais e restantes por extenso também
+        dados.valorTotal = document.getElementById('cd_valor_total').value;
+        dados.valorTotalExtenso = valorPorExtenso(parseFloat(dados.valorTotal) || 0);
+        
+        dados.valorRestante = document.getElementById('cd_valor_restante_display').value;
+        dados.valorRestanteExtenso = valorPorExtenso(parseFloat(dados.valorRestante) || 0);
+
+        dados.assinatura = document.getElementById('cd_assinatura').value;
         dados.maioridadeTipo = document.getElementById('cd_maioridade_tipo').value;
         dados.maioridadeTexto = dados.maioridadeTipo === 'menor' ? document.getElementById('cd_idade_manual').value : "maior de 18 anos";
         
