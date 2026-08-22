@@ -283,16 +283,16 @@
                 </div>
                 <div class="table-responsive border rounded bg-white" style="max-height: 480px; overflow-y: auto;">
                   <table class="table table-striped table-hover align-middle mb-0 small">
-                    <thead class="table-dark sticky-top">
+<thead class="table-dark sticky-top">
                       <tr>
-                        <th>Chave Validação</th>
-                        <th>Colaborador</th>
-                        <th>Tipo Documento</th>
-                        <th>Aluno / Contratante</th>
-                        <th>Data</th>
-                        <th>Horário</th>
-<th>Emissor</th>
-                        <th>Status</th>
+                        <th style="cursor:pointer" onclick="ordenarTabela('chave')" title="Clique para ordenar">Chave Val. <i class="fas fa-sort ms-1"></i></th>
+                        <th style="cursor:pointer" onclick="ordenarTabela('colaborador')" title="Clique para ordenar">Colaborador <i class="fas fa-sort ms-1"></i></th>
+                        <th style="cursor:pointer" onclick="ordenarTabela('tipo')" title="Clique para ordenar">Documento <i class="fas fa-sort ms-1"></i></th>
+                        <th style="cursor:pointer" onclick="ordenarTabela('aluno')" title="Clique para ordenar">Aluno/Contratante <i class="fas fa-sort ms-1"></i></th>
+                        <th style="cursor:pointer" onclick="ordenarTabela('data')" title="Clique para ordenar">Data <i class="fas fa-sort ms-1"></i></th>
+                        <th style="cursor:pointer" onclick="ordenarTabela('horario')" title="Clique para ordenar">Hora <i class="fas fa-sort ms-1"></i></th>
+                        <th style="cursor:pointer" onclick="ordenarTabela('emissor')" title="Clique para ordenar">Emissor <i class="fas fa-sort ms-1"></i></th>
+                        <th style="cursor:pointer" onclick="ordenarTabela('status')" title="Clique para ordenar">Status <i class="fas fa-sort ms-1"></i></th>
                         <th class="text-center">Ações</th>
                       </tr>
                     </thead>
@@ -881,25 +881,67 @@
       });
     }
 
-function atualizarTabelaInterna() {
+// ---------------- INÍCIO DO BLOCO DA TABELA ----------------
+
+    // Variáveis para controlar a ordenação
+    let dadosAuditoriaGlobais = [];
+    let ordenacaoAtual = { coluna: null, crescente: true };
+
+    function atualizarTabelaInterna() {
       const filtro = document.getElementById('inputFiltroInterno').value;
       const corpo = document.getElementById('corpoTabelaInterna');
       corpo.innerHTML = `<tr><td colspan="9" class="text-center py-3"><i class="fas fa-spinner fa-spin text-primary"></i> Sincronizando com o Google Sheets...</td></tr>`;
+      
       chamarBackend("consultarRegistrosInternos", filtro, function(linhas) {
-        corpo.innerHTML = "";
-        if (linhas.length === 0) { corpo.innerHTML = `<tr><td colspan="9" class="text-center py-3 text-muted">Nenhum registro correspondente encontrado.</td></tr>`; return; }
-        linhas.forEach(l => {
-          let badgeStatus = l.status === "Ativo" ? "bg-success" : "bg-danger";
-          
-          // Novos botões de Ação
-          let botoesAcao = `
-            <button class="btn btn-sm btn-outline-primary" onclick="baixarDocumentoHistorico('${l.chave}', this)" title="Baixar PDF"><i class="fas fa-download"></i></button>
-            <button class="btn btn-sm btn-outline-danger ms-1" onclick="excluirRegistroHistorico('${l.chave}', this)" title="Excluir Registro"><i class="fas fa-trash-alt"></i></button>
-          `;
-          
-          corpo.innerHTML += `<tr><td class="fw-bold text-primary font-monospace">${l.chave}</td><td>${l.colaborador}</td><td><span class="badge bg-secondary text-white">${l.tipo}</span></td><td class="fw-semibold">${l.aluno}</td><td>${l.data}</td><td>${l.horario}</td><td class="text-muted"><i class="fas fa-user-edit"></i> ${l.emissor || 'N/A'}</td><td><span class="badge ${badgeStatus}">${l.status}</span></td><td class="text-center text-nowrap">${botoesAcao}</td></tr>`;
-        });
+        // Inverte a lista para o mais recente ficar no topo
+        dadosAuditoriaGlobais = linhas.reverse(); 
+        renderizarTabelaAuditoria(dadosAuditoriaGlobais);
       });
+    }
+
+    function renderizarTabelaAuditoria(linhas) {
+      const corpo = document.getElementById('corpoTabelaInterna');
+      corpo.innerHTML = "";
+      if (linhas.length === 0) { 
+        corpo.innerHTML = `<tr><td colspan="9" class="text-center py-3 text-muted">Nenhum registro correspondente encontrado.</td></tr>`; 
+        return; 
+      }
+      
+      linhas.forEach(l => {
+        let badgeStatus = l.status === "Ativo" ? "bg-success" : "bg-danger";
+        let botoesAcao = `
+          <button class="btn btn-sm btn-outline-primary" onclick="baixarDocumentoHistorico('${l.chave}', this)" title="Baixar PDF"><i class="fas fa-download"></i></button>
+          <button class="btn btn-sm btn-outline-danger ms-1" onclick="excluirRegistroHistorico('${l.chave}', this)" title="Excluir Registro"><i class="fas fa-trash-alt"></i></button>
+        `;
+        corpo.innerHTML += `<tr><td class="fw-bold text-primary font-monospace">${l.chave}</td><td>${l.colaborador}</td><td><span class="badge bg-secondary text-white">${l.tipo}</span></td><td class="fw-semibold">${l.aluno}</td><td>${l.data}</td><td>${l.horario}</td><td class="text-muted"><i class="fas fa-user-edit"></i> ${l.emissor || 'N/A'}</td><td><span class="badge ${badgeStatus}">${l.status}</span></td><td class="text-center text-nowrap">${botoesAcao}</td></tr>`;
+      });
+    }
+
+    function ordenarTabela(coluna) {
+        if (!dadosAuditoriaGlobais || dadosAuditoriaGlobais.length === 0) return;
+
+        if (ordenacaoAtual.coluna === coluna) {
+            ordenacaoAtual.crescente = !ordenacaoAtual.crescente;
+        } else {
+            ordenacaoAtual.coluna = coluna;
+            ordenacaoAtual.crescente = true;
+        }
+
+        dadosAuditoriaGlobais.sort((a, b) => {
+            let valorA = a[coluna] ? a[coluna].toString().toLowerCase() : "";
+            let valorB = b[coluna] ? b[coluna].toString().toLowerCase() : "";
+
+            if (coluna === 'data') {
+                valorA = valorA.split('/').reverse().join('');
+                valorB = valorB.split('/').reverse().join('');
+            }
+
+            if (valorA < valorB) return ordenacaoAtual.crescente ? -1 : 1;
+            if (valorA > valorB) return ordenacaoAtual.crescente ? 1 : -1;
+            return 0;
+        });
+
+        renderizarTabelaAuditoria(dadosAuditoriaGlobais);
     }
 
     function baixarDocumentoHistorico(chave, btn) {
@@ -930,7 +972,7 @@ function atualizarTabelaInterna() {
       
       chamarBackend("excluirRegistroPlanilha", chave, function(res) {
         if(res.sucesso) {
-          atualizarTabelaInterna(); // Atualiza a tabela imediatamente
+          atualizarTabelaInterna();
         } else {
           btn.innerHTML = icon; btn.disabled = false;
           alert("Falha ao excluir: " + res.msg);
@@ -940,6 +982,7 @@ function atualizarTabelaInterna() {
         alert("Erro de comunicação com o servidor.");
       });
     }
+    // ---------------- FIM DO BLOCO DA TABELA ----------------
 
     function gerarCamposMesesAtraso() {
       const qtd = parseInt(document.getElementById('nd_qtd_meses').value) || 0;
