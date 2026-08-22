@@ -1493,9 +1493,15 @@ function preencherAssinaturas() {
         dados.boletoAtivo = document.getElementById('cd_check_boleto').checked;
         dados.boletoQtd = document.getElementById('cd_boleto_qtd').value;
         dados.boletoValorParc = document.getElementById('cd_boleto_valor_parc').value;
-        dados.cartaoAtivo = document.getElementById('cd_check_cartao').checked;
+dados.cartaoAtivo = document.getElementById('cd_check_cartao').checked;
         dados.cartaoQtd = document.getElementById('cd_cartao_qtd').value;
         dados.cartaoValorParc = document.getElementById('cd_cartao_valor_parc').value;
+        
+        // ENVIA O VALOR RESTANTE ESPECIFICAMENTE PARA O CARTÃO (E BOLETO)
+        dados.cartaoValorTotal = dados.valorRestante;
+        dados.cartaoValorTotalExtenso = dados.valorRestanteExtenso;
+        dados.boletoValorTotal = dados.valorRestante;
+        dados.boletoValorTotalExtenso = dados.valorRestanteExtenso;
         
         dados.boletoParcelas = [];
         if(dados.boletoAtivo) {
