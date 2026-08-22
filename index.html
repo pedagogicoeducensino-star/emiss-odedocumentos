@@ -291,13 +291,14 @@
                         <th>Aluno / Contratante</th>
                         <th>Data</th>
                         <th>Horário</th>
-                        <th>Emissor</th>
+<th>Emissor</th>
                         <th>Status</th>
+                        <th class="text-center">Ações</th>
                       </tr>
                     </thead>
                     <tbody id="corpoTabelaInterna">
                       <tr>
-                        <td colspan="8" class="text-center py-3 text-muted">Digite um termo ou clique em atualizar...</td>
+                        <td colspan="9" class="text-center py-3 text-muted">Digite um termo ou clique em atualizar...</td>
                       </tr>
                     </tbody>
                   </table>
@@ -880,17 +881,63 @@
       });
     }
 
-    function atualizarTabelaInterna() {
+function atualizarTabelaInterna() {
       const filtro = document.getElementById('inputFiltroInterno').value;
       const corpo = document.getElementById('corpoTabelaInterna');
-      corpo.innerHTML = `<tr><td colspan="8" class="text-center py-3"><i class="fas fa-spinner fa-spin text-primary"></i> Sincronizando com o Google Sheets...</td></tr>`;
+      corpo.innerHTML = `<tr><td colspan="9" class="text-center py-3"><i class="fas fa-spinner fa-spin text-primary"></i> Sincronizando com o Google Sheets...</td></tr>`;
       chamarBackend("consultarRegistrosInternos", filtro, function(linhas) {
         corpo.innerHTML = "";
-        if (linhas.length === 0) { corpo.innerHTML = `<tr><td colspan="8" class="text-center py-3 text-muted">Nenhum registro correspondente encontrado.</td></tr>`; return; }
+        if (linhas.length === 0) { corpo.innerHTML = `<tr><td colspan="9" class="text-center py-3 text-muted">Nenhum registro correspondente encontrado.</td></tr>`; return; }
         linhas.forEach(l => {
           let badgeStatus = l.status === "Ativo" ? "bg-success" : "bg-danger";
-          corpo.innerHTML += `<tr><td class="fw-bold text-primary font-monospace">${l.chave}</td><td>${l.colaborador}</td><td><span class="badge bg-secondary text-white">${l.tipo}</span></td><td class="fw-semibold">${l.aluno}</td><td>${l.data}</td><td>${l.horario}</td><td class="text-muted"><i class="fas fa-user-edit"></i> ${l.emissor || 'N/A'}</td><td><span class="badge ${badgeStatus}">${l.status}</span></td></tr>`;
+          
+          // Novos botões de Ação
+          let botoesAcao = `
+            <button class="btn btn-sm btn-outline-primary" onclick="baixarDocumentoHistorico('${l.chave}', this)" title="Baixar PDF"><i class="fas fa-download"></i></button>
+            <button class="btn btn-sm btn-outline-danger ms-1" onclick="excluirRegistroHistorico('${l.chave}', this)" title="Excluir Registro"><i class="fas fa-trash-alt"></i></button>
+          `;
+          
+          corpo.innerHTML += `<tr><td class="fw-bold text-primary font-monospace">${l.chave}</td><td>${l.colaborador}</td><td><span class="badge bg-secondary text-white">${l.tipo}</span></td><td class="fw-semibold">${l.aluno}</td><td>${l.data}</td><td>${l.horario}</td><td class="text-muted"><i class="fas fa-user-edit"></i> ${l.emissor || 'N/A'}</td><td><span class="badge ${badgeStatus}">${l.status}</span></td><td class="text-center text-nowrap">${botoesAcao}</td></tr>`;
         });
+      });
+    }
+
+    function baixarDocumentoHistorico(chave, btn) {
+      let icon = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      btn.disabled = true;
+      
+      chamarBackend("buscarLinksDocumento", chave, function(res) {
+        btn.innerHTML = icon;
+        btn.disabled = false;
+        if(res.sucesso && res.urlPdf) {
+          window.open(res.urlPdf, '_blank');
+        } else {
+          alert("Não foi possível baixar. " + (res.msg || "Link não encontrado."));
+        }
+      }, function(err) {
+        btn.innerHTML = icon; btn.disabled = false;
+        alert("Erro de comunicação com o servidor.");
+      });
+    }
+
+    function excluirRegistroHistorico(chave, btn) {
+      if(!confirm("Tem certeza que deseja EXCLUIR o registro: " + chave + "?")) return;
+      
+      let icon = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      btn.disabled = true;
+      
+      chamarBackend("excluirRegistroPlanilha", chave, function(res) {
+        if(res.sucesso) {
+          atualizarTabelaInterna(); // Atualiza a tabela imediatamente
+        } else {
+          btn.innerHTML = icon; btn.disabled = false;
+          alert("Falha ao excluir: " + res.msg);
+        }
+      }, function(err) {
+        btn.innerHTML = icon; btn.disabled = false;
+        alert("Erro de comunicação com o servidor.");
       });
     }
 
