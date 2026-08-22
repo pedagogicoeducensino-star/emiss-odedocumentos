@@ -283,22 +283,21 @@
                 </div>
                 <div class="table-responsive border rounded bg-white" style="max-height: 480px; overflow-y: auto;">
                   <table class="table table-striped table-hover align-middle mb-0 small">
-<thead class="table-dark sticky-top">
+                    <thead class="table-dark sticky-top">
                       <tr>
-                        <th style="cursor:pointer" onclick="ordenarTabela('chave')" title="Clique para ordenar">Chave Val. <i class="fas fa-sort ms-1"></i></th>
+                        <th style="cursor:pointer" onclick="ordenarTabela('chave')" title="Clique para ordenar">Chave <i class="fas fa-sort ms-1"></i></th>
                         <th style="cursor:pointer" onclick="ordenarTabela('colaborador')" title="Clique para ordenar">Colaborador <i class="fas fa-sort ms-1"></i></th>
-                        <th style="cursor:pointer" onclick="ordenarTabela('tipo')" title="Clique para ordenar">Documento <i class="fas fa-sort ms-1"></i></th>
+                        <th style="cursor:pointer" onclick="ordenarTabela('tipo')" title="Clique para ordenar">Tipo <i class="fas fa-sort ms-1"></i></th>
                         <th style="cursor:pointer" onclick="ordenarTabela('aluno')" title="Clique para ordenar">Aluno/Contratante <i class="fas fa-sort ms-1"></i></th>
-                        <th style="cursor:pointer" onclick="ordenarTabela('data')" title="Clique para ordenar">Data <i class="fas fa-sort ms-1"></i></th>
+                        <th style="cursor:pointer" onclick="ordenarTabela('data')" title="Clique para ordenar">Emissão <i class="fas fa-sort ms-1"></i></th>
                         <th style="cursor:pointer" onclick="ordenarTabela('horario')" title="Clique para ordenar">Hora <i class="fas fa-sort ms-1"></i></th>
-                        <th style="cursor:pointer" onclick="ordenarTabela('emissor')" title="Clique para ordenar">Emissor <i class="fas fa-sort ms-1"></i></th>
-                        <th style="cursor:pointer" onclick="ordenarTabela('status')" title="Clique para ordenar">Status <i class="fas fa-sort ms-1"></i></th>
+                        <th style="cursor:pointer" onclick="ordenarTabela('emissor')" title="Clique para ordenar">Assinatura <i class="fas fa-sort ms-1"></i></th>
                         <th class="text-center">Ações</th>
                       </tr>
                     </thead>
                     <tbody id="corpoTabelaInterna">
                       <tr>
-                        <td colspan="9" class="text-center py-3 text-muted">Digite um termo ou clique em atualizar...</td>
+                        <td colspan="8" class="text-center py-3 text-muted">Digite um termo ou clique em atualizar...</td>
                       </tr>
                     </tbody>
                   </table>
@@ -795,6 +794,47 @@
   }
   // ---------------------------------------
 
+    // --- NOVA FUNÇÃO DE VALIDAÇÃO (Trava Antierros) ---
+    function validarFormularioAtivo(idFormulario) {
+        let formContainer = null;
+        if(idFormulario === '11a') formContainer = document.getElementById('bloco_estorno_11a');
+        else if(idFormulario === '11b') formContainer = document.getElementById('bloco_estorno_11b');
+        else if(idFormulario === '11c') formContainer = document.getElementById('bloco_estorno_11c');
+        else if(idFormulario === 4) formContainer = document.getElementById('bloco_comp_4');
+        else if(idFormulario === 5) formContainer = document.getElementById('bloco_comp_5');
+        else if(idFormulario === 6) formContainer = document.getElementById('bloco_comp_6');
+        else formContainer = document.getElementById('form_doc_' + idFormulario);
+
+        if(!formContainer) return true; // Segurança
+
+        let inputs = formContainer.querySelectorAll('input:not([type="hidden"]):not([readonly]), select');
+        let formValido = true;
+
+        for(let input of inputs) {
+            // Ignora campos que não estão visíveis (dentro de "escondido") ou checkboxes opcionais
+            if(input.closest('.escondido') || input.type === "checkbox") continue;
+            
+            // Tratamento especial para o bloco de Confissão de Dívida (opções de pagamento)
+            if(idFormulario === 14) {
+                if(input.id === 'cd_idade_manual' && document.getElementById('cd_maioridade_tipo').value !== 'menor') continue;
+                if(input.id.startsWith('cd_entrada_') && !document.getElementById('cd_check_entrada').checked) continue;
+                if(input.id.startsWith('cd_avista_') && !document.getElementById('cd_check_avista').checked) continue;
+                if(input.id.startsWith('cd_boleto_') && !document.getElementById('cd_check_boleto').checked) continue;
+                if(input.id.startsWith('cd_cartao_') && !document.getElementById('cd_check_cartao').checked) continue;
+            }
+
+            if(input.value === null || input.value.trim() === "") {
+                formValido = false;
+                input.style.borderColor = "red";
+                // setTimeout para remover a borda vermelha depois de 3 segundos
+                setTimeout(() => { input.style.borderColor = ""; }, 3000);
+            }
+        }
+        return formValido;
+    }
+    // ---------------------------------------------------
+
+
     function abrirFormulario(id) {
       if (id === formularioAtual) return;
       
@@ -837,7 +877,11 @@
     }
 
     function limparFormularioTrabalhado(idForm) {
-      const container = document.getElementById('form_doc_' + idForm);
+      let docFormId = idForm;
+      if (idForm === '11a' || idForm === '11b' || idForm === '11c') docFormId = 11;
+      if (idForm === 4 || idForm === 5 || idForm === 6) docFormId = 'comp';
+      
+      const container = document.getElementById('form_doc_' + docFormId);
       if(!container) return;
       container.querySelectorAll('input, select').forEach(inp => {
         if(inp.type === "checkbox") inp.checked = false;
@@ -890,7 +934,7 @@
     function atualizarTabelaInterna() {
       const filtro = document.getElementById('inputFiltroInterno').value;
       const corpo = document.getElementById('corpoTabelaInterna');
-      corpo.innerHTML = `<tr><td colspan="9" class="text-center py-3"><i class="fas fa-spinner fa-spin text-primary"></i> Sincronizando com o Google Sheets...</td></tr>`;
+      corpo.innerHTML = `<tr><td colspan="8" class="text-center py-3"><i class="fas fa-spinner fa-spin text-primary"></i> Sincronizando com o Google Sheets...</td></tr>`;
       
       chamarBackend("consultarRegistrosInternos", filtro, function(linhas) {
         // Inverte a lista para o mais recente ficar no topo
@@ -903,17 +947,16 @@
       const corpo = document.getElementById('corpoTabelaInterna');
       corpo.innerHTML = "";
       if (linhas.length === 0) { 
-        corpo.innerHTML = `<tr><td colspan="9" class="text-center py-3 text-muted">Nenhum registro correspondente encontrado.</td></tr>`; 
+        corpo.innerHTML = `<tr><td colspan="8" class="text-center py-3 text-muted">Nenhum registro correspondente encontrado.</td></tr>`; 
         return; 
       }
       
       linhas.forEach(l => {
-        let badgeStatus = l.status === "Ativo" ? "bg-success" : "bg-danger";
         let botoesAcao = `
           <button class="btn btn-sm btn-outline-primary" onclick="baixarDocumentoHistorico('${l.chave}', this)" title="Baixar PDF"><i class="fas fa-download"></i></button>
           <button class="btn btn-sm btn-outline-danger ms-1" onclick="excluirRegistroHistorico('${l.chave}', this)" title="Excluir Registro"><i class="fas fa-trash-alt"></i></button>
         `;
-        corpo.innerHTML += `<tr><td class="fw-bold text-primary font-monospace">${l.chave}</td><td>${l.colaborador}</td><td><span class="badge bg-secondary text-white">${l.tipo}</span></td><td class="fw-semibold">${l.aluno}</td><td>${l.data}</td><td>${l.horario}</td><td class="text-muted"><i class="fas fa-user-edit"></i> ${l.emissor || 'N/A'}</td><td><span class="badge ${badgeStatus}">${l.status}</span></td><td class="text-center text-nowrap">${botoesAcao}</td></tr>`;
+        corpo.innerHTML += `<tr><td class="fw-bold text-primary font-monospace">${l.chave}</td><td>${l.colaborador}</td><td><span class="badge bg-secondary text-white">${l.tipo}</span></td><td class="fw-semibold">${l.aluno}</td><td>${l.data}</td><td>${l.horario}</td><td class="text-muted"><i class="fas fa-pen-nib"></i> ${l.emissor || 'N/A'}</td><td class="text-center text-nowrap">${botoesAcao}</td></tr>`;
       });
     }
 
@@ -1370,6 +1413,11 @@ function preencherAssinaturas() {
     }
 
     function processarEmissao(idForm, e) {
+      if(!validarFormularioAtivo(idForm)) {
+          alert("Existem campos obrigatórios vazios ou não selecionados. Por favor, preencha-os antes de emitir.");
+          return;
+      }
+
       let dados = { colaborador: usuarioAtivo }; let funcao = ""; let idRes = "areaResultado" + idForm;
       
       if(idForm === 1) {
