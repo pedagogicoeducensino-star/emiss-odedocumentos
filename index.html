@@ -1148,7 +1148,13 @@
     }
 
 function preencherAssinaturas() {
-      let options = `<option value="">Selecione...</option><option value="Coordenador">Davi Felício - Coordenador</option><option value="Gerente">Eksele Matos - Gerente Comercial</option><option value="Instrutor">Convidado(a) - Instrutor</option><option value="Secretario(a)">Alice Santos da Silva - Secretário(a)</option><option value="Direcao">Direção Multidisciplinar</option>`;
+      let options = `<option value="">Selecione...</option>
+      <option value="Coordenador">Davi Felício - Coordenador</option>
+      <option value="Gerente">Eksele Matos - Gerente Comercial</option>
+      <option value="Instrutor">Convidado(a) - Instrutor</option>
+      <option value="Secretaria">Alice Santos - Secretária</option>
+      <option value="Direcao">Direção Multidisciplinar</option>`;
+      
       document.querySelectorAll('.select-assinatura').forEach(sel => sel.innerHTML = options);
     }
 
