@@ -267,6 +267,7 @@
               <div class="item-documento" id="btn_doc_17" onclick="abrirFormulario(17)"><i class="fas fa-graduation-cap text-success"></i> Entrega de Certificado</div>
               <div class="item-documento" id="btn_doc_18" onclick="abrirFormulario(18)"><i class="fas fa-exclamation-triangle text-danger"></i> Notificação de Débito</div>
               <div class="item-documento" id="btn_doc_19" onclick="abrirFormulario(19)"><i class="fas fa-money-check-alt text-success"></i> Pagamentos de Serviços</div>
+            <div class="item-documento" id="btn_doc_20" onclick="abrirFormulario(20)"><i class="fas fa-graduation-cap text-success"></i> Declaração de Conclusão</div>
             </div>
           </div>
 
@@ -733,7 +734,7 @@
                 <div id="areaResultado18"></div>
               </div>
 
-              <div id="form_doc_19" class="escondido">
+<div id="form_doc_19" class="escondido">
                 <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-money-check-alt text-success"></i> Declaração de Pagamentos de Serviços Educacionais <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Funcionário</span></h5>
                 <div class="row g-3">
                   <div class="col-md-6"><label class="form-label fw-bold">Responsável Financeiro:</label><input type="text" id="pg_responsavel" class="form-control" required></div>
@@ -763,6 +764,18 @@
                 </div>
                 <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(19, event)"><i class="fas fa-database"></i> Emitir Declaração de Pagamentos</button></div>
                 <div id="areaResultado19"></div>
+              </div>
+
+              <div id="form_doc_20" class="escondido">
+                <h5 class="text-dark mb-4 border-bottom pb-2"><i class="fas fa-graduation-cap text-success"></i> Declaração de Conclusão de Curso <span class="badge bg-light text-dark border small ms-2" style="font-size:11px;">Assina: Funcionário</span></h5>
+                <div class="row g-3">
+                  <div class="col-md-8"><label class="form-label fw-bold">Nome do Aluno(a):</label><input type="text" id="dc_nome" class="form-control" required></div>
+                  <div class="col-md-4"><label class="form-label fw-bold">Matrícula:</label><input type="text" id="dc_matricula" class="form-control" required></div>
+                  <div class="col-md-12"><label class="form-label fw-bold">Curso:</label><input list="lista-cursos" id="dc_curso" class="form-control" placeholder="Selecione ou digite o curso..." required></div>
+                  <div class="col-md-12 mt-4"><label class="form-label fw-bold">Assinatura da Escola:</label><select id="dc_assinatura" class="form-select select-assinatura" required></select></div>
+                </div>
+                <div class="text-end border-top pt-3 mt-4"><button class="btn btn-primario px-5" onclick="processarEmissao(20, event)"><i class="fas fa-database"></i> Emitir Documento</button></div>
+                <div id="areaResultado20"></div>
               </div>
 
             </div>
@@ -1583,7 +1596,13 @@ dados.cartaoAtivo = document.getElementById('cd_check_cartao').checked;
         }
         funcao = "publicarDocumentoPagamentos";
       }
-
+else if(idForm === 20) {
+  dados.nomeAluno = document.getElementById('dc_nome').value;
+  dados.matricula = document.getElementById('dc_matricula').value;
+  dados.curso = document.getElementById('dc_curso').value;
+  dados.assinatura = document.getElementById('dc_assinatura').value;
+  funcao = "publicarDocumentoConclusao";
+}
       let btn = e.target;
       if(btn.tagName === "I") btn = btn.parentElement;
       let oldHTML = btn.innerHTML;
